@@ -1,0 +1,5 @@
+At the beginning of your upkeep|2
+Whenever a creature you control deals combat damage to an opponent|3
+At the beginning of your end step|2
+When this enters|1
+Whenever a land you control enters|1.2

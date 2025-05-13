@@ -1,0 +1,5 @@
+you have 10 or less life|0.5
+you control three or more artifacts|0.5
+a creature died this turn|0.5
+you attacked this turn|0.5
+you have four or more cards in hand|0.5

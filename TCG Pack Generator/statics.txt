@@ -1,0 +1,5 @@
+creatures you control get +1/+1|4
+instant and sorcery spells you cast cost 1 less to cast|3
+creatures your opponents control get -1/-1|5
+creatures you control have haste|3
+you may play an additional land on each of your turns|6

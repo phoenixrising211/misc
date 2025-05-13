@@ -1,0 +1,22 @@
+package skills;
+
+import characters.Creature;
+import driver.Combat;
+
+public class ViciousEdge extends Skill {
+	
+	public ViciousEdge() {
+		name = "Vicious Edge";
+		sp = 20;
+	}
+	
+	public void use(Creature active, Combat combat, boolean friendly, boolean random){
+		active.spend(sp);
+		Creature[] enemies = friendly? combat.getMob() : combat.getParty();
+		Creature target = random? randomizeTarget(enemies) : chooseTarget(enemies, combat.getScan());
+		System.out.println("\n" + active.getName() + " attacks " + target.getName() + " with " + name + "!");
+		dealDamage(active, target, 35);
+		selfDamage(active, 5);
+	}
+
+}

@@ -1,0 +1,6 @@
+$static.
+As long as $condition, $static.
+$trigger, $effect.
+$trigger, if $condition, $effect.
+$activation: $effect.
+$activation: If $condition, $effect.

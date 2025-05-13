@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Epic RPG</title>
+<script type="text/javascript" src="javascript/d3.min.js"></script>
+<script type="text/javascript" src="javascript/epicCombat.js"></script>
+<script type="text/javascript" src="javascript/epicClasses.js"></script>
+<script type="text/javascript" src="javascript/epicEquipment.js"></script>
+<link type="text/css" href="css/epic.css" rel="stylesheet">
+<link type="text/css" href="css/bars.css" rel="stylesheet">
+</head>
+<body>
+<div id="titleScreen" class="screen">
+	<table style="width:100%">
+		<tr>
+			<td valign="top" style="text-align:center; width:100%;">
+				<h1>Epic RPG</h1>
+			</td>
+		</tr>
+		<tr>
+			<td valign="bottom" style="width:100%">
+				<button onclick="play()" style="margin:0 auto; display:block;">Play!</button>
+			</td>
+		</tr>
+	</table>
+</div>
+<div id="mapScreen" class="screen">
+	<div id="map" class="panel" style="height: 794px;"></div>
+	<div id="mapButtons" class="panel" style="height: 94px;">
+		<button onclick="goToCombat()">Go to combat!</button>
+		<button onclick="quit()">Quit Game</button>
+	</div>
+</div>
+<div id="combatScreen" class="screen">
+	<div id="mobHp" class="panel" style="height: 194px;"></div>
+	<div id="combatText" class="panel" style="height: 394px;"></div>
+	<div id="partyHp" class="panel" style="height: 194px;"></div>
+	<div id="combatButtons" class="panel" style="height: 94px;"></div>
+</div>
+
+<script>
+var ts = d3.select("#titleScreen");
+var ms = d3.select("#mapScreen");
+var cs = d3.select("#combatScreen");
+
+var mhp = d3.select("#mobHp");
+var ct = d3.select("#combatText");
+var php = d3.select("#partyHp");
+var cb = d3.select("#combatButtons");
+
+ts.style("display","block");
+
+party[0] = newCleric("Alice");
+party[1] = newFighter("Bob");
+party[2] = newWizard("Claire");
+party[3] = newRogue("Dave");
+
+for(var i=0; i<22; i++){
+	ct.append("text").text("").append("br");
+}
+
+var update = function(textToAdd){
+	ct.select("text").remove();
+	ct.append("text").text(textToAdd).append("br");
+}
+
+function play(){
+	ts.style("display","none");
+	ms.style("display","block");
+}
+
+function goToCombat(){
+	mob = [];
+	mob[0] = newCleric("Winona");
+	mob[1] = newFighter("Xavier");
+	mob[2] = newWizard("Yolanda");
+	mob[3] = newRogue("Zane");
+	
+	for(var i=0; i<22; i++){
+		update("");
+	}
+	
+	ms.style("display","none");
+	cs.style("display","block");
+	
+	setupCombat();
+	tickTimeout = tick();
+}
+
+function quit(){
+	ms.style("display","none");
+	ts.style("display","block");
+}
+
+function win(){
+	clearTimeout(battleTimeout);
+	q.items = [];
+	cb.selectAll("button").remove();
+	cs.style("display","none");
+	ms.style("display","block");
+}
+</script>
+</body>
+</html>

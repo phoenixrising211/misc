@@ -1,0 +1,716 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Vetroidmania!</title>
+<script type="text/javascript" src="javascript/d3.min.js"></script>
+<script type="text/javascript" src="javascript/mvTestMaps.js"></script>
+<link type="text/css" href="css/bars.css" rel="stylesheet">
+<link type="text/css" href="css/buttons.css" rel="stylesheet">
+</head>
+<body>
+<script>
+d3.select("body").style("margin", 0)
+
+var bodyWidth = document.body.clientWidth //1920 px
+var bodyHeight = window.innerHeight //937 px
+
+var keysPressed = {}
+window.onkeyup = function(e) {
+	keysPressed[e.keyCode] = false
+}
+window.onkeydown = function(e) {
+	keysPressed[e.keyCode] = true
+}
+
+//CONSTANTS
+characterHeightInches = 68
+characterWidthInches = 30
+terrainWidthInches = 23
+stageWidthTiles = 45
+stageHeightTiles = 22
+stageWidthInches = stageWidthTiles * terrainWidthInches
+stageHeightInches = stageHeightTiles * terrainWidthInches
+gravityInches = .107
+frictionInches = .535
+dragInches = .047
+fps = 60
+t = d3.transition().duration(1000 / fps)
+
+//setup stage
+stageScale = Math.min(bodyWidth/stageWidthInches, (bodyHeight-60)/stageHeightInches)
+terrainWidth = Math.round(terrainWidthInches * stageScale)
+stageWidth = stageWidthTiles * terrainWidth
+stageHeight = stageHeightTiles * terrainWidth
+boundaryWidth = (bodyWidth - stageWidth) / 2
+displayHeight = stageHeight + 60
+ceilingHeight = ((bodyHeight - displayHeight) / 2) + 60
+floorHeight = bodyHeight - ((bodyHeight - displayHeight) / 2)
+midHeight = (ceilingHeight + floorHeight) / 2
+gravity = gravityInches * stageScale
+friction = frictionInches * stageScale
+vFriction = 0
+drag = dragInches * stageScale
+vFactor = 1
+hpBarWidth = (bodyWidth/2) - (boundaryWidth*3)
+
+stage = d3.select("body").append("svg").style("width", bodyWidth).style("height", bodyHeight)
+stage.append("rect").attr("x", boundaryWidth).attr("y", ceilingHeight).attr("width", stageWidth).attr("height", stageHeight)
+		.style("stroke", "black").style("stroke-width", 5).style("fill", "none")
+
+//setup terrain
+currentZone = startingMap
+startPosition = {x:boundaryWidth + (terrainWidth*5), y:floorHeight - (terrainWidth*4)}
+
+//create player
+p = newPlayer()
+
+stage.append("rect").classed("hpBar", true).classed("green", true).attr("id", "p1").style("fill", "#0f0")
+		.attr("x", boundaryWidth*2).attr("y", 20).attr("width", hpBarWidth).attr("height", 20)
+stage.append("rect").classed("hpBar", true).classed("blood", true).attr("id", "p1").style("fill", "#f00")
+		.attr("x", (boundaryWidth*2) + hpBarWidth).attr("y", 20).attr("width", 0).attr("height", 20)
+stage.append("rect").classed("hpBar", true).classed("red", true).attr("id", "p1").style("fill", "#800")
+		.attr("x", (boundaryWidth*2) + hpBarWidth).attr("y", 20).attr("width", 0).attr("height", 20)
+
+tickTimeout = null
+paused = true
+restart()
+
+function restart(){
+	terrain = loadTerrain(currentZone)
+	p.hitbox.x = startPosition.x
+	p.hitbox.y = startPosition.y
+	p.hitbox.height = p.height
+	p.vx = 0
+	p.vy = gravity
+	p.state = "idle"
+	p.grounded = false
+	p.underwater = false
+	p.doubleJumped = false
+	p.airDashed = false
+	p.frame = 0
+	takeDamage(-100)
+	paused = false
+	tickTimeout = setTimeout(tick, 1000/fps)
+}
+
+function tick(){
+	//determine next state based on collision resolution and/or key press
+	//determine next location based on velocities
+	move(p.hitbox)
+	switch(p.state){
+	case "idle":
+		p.vx = approach(p.vx, 0, friction)
+		break
+	case "jumping":
+	case "sliding":
+		p.vx = approach(p.vx, 0, drag)
+		break
+	case "launched":
+		if (p.vy >= 0 * stageScale){
+			p.state = "jumping"
+		}
+		break
+	case "crouching":
+		if(!keysPressed[p.controls["crouch"]]){
+			p.state = "idle"
+			p.hitbox.y = p.hitbox.y + p.hitbox.height - p.height
+			p.hitbox.height = p.height
+		}
+		break
+	case "dashing":
+		p.frame++
+		if (p.frame > 30){
+			p.state = "jumping"
+		}else{
+			p.vx = 5 * stageScale * p.facing
+			p.vy = 0
+		}
+	}
+	
+	if(keysPressed[p.controls["left"]] && keysPressed[p.controls["right"]]){
+		p.vx=0
+	}else if(keysPressed[p.controls["left"]] && keysPressed[p.controls["jump"]]){
+		switch(p.state){
+		case "idle":
+			p.facing = -1
+			p.vx = -2 * stageScale
+			p.vy = -4 * stageScale
+			p.state = "jumping"
+			break
+		case "jumping":
+			p.facing = -1
+			p.vx = -2 * stageScale
+			if (p.skillsEnabled.airJump && p.vy >= 0 && !p.doubleJumped){
+				p.facing = -1
+				p.vx = -2 * stageScale
+				p.vy = -4 * stageScale
+				p.doubleJumped = true
+			}
+			break
+		case "crouching":
+			p.facing = -1
+			break
+		case "sliding":
+			p.facing *= -1
+			p.vx = 2 * stageScale * p.facing
+			p.vy = -4 * stageScale
+			p.state = "launched"
+		}
+	}else if(keysPressed[p.controls["right"]] && keysPressed[p.controls["jump"]]){
+		switch(p.state){
+		case "idle":
+			p.facing = 1
+			p.vx = 2 * stageScale
+			p.vy = -4 * stageScale
+			p.state = "jumping"
+			break
+		case "jumping":
+			p.facing = 1
+			p.vx = 2 * stageScale
+			if (p.skillsEnabled.airJump && p.vy >= 0 && !p.doubleJumped){
+				p.facing = 1
+				p.vx = 2 * stageScale
+				p.vy = -4 * stageScale
+				p.doubleJumped = true
+			}
+			break
+		case "crouching":
+			p.facing = 1
+			break
+		case "sliding":
+			p.facing *= -1
+			p.vx = 2 * stageScale * p.facing
+			p.vy = -4 * stageScale
+			p.state = "launched"
+		}
+	}else if(keysPressed[p.controls["left"]] && keysPressed[p.controls["action"]]){
+		switch(p.state){
+		case "idle":
+			p.facing = -1
+			if(p.skillsEnabled.fireDash){
+				p.vx = -5 * stageScale
+				p.vy = 0
+				p.state = "dashing"
+				p.frame = 0
+			}
+			break
+		case "jumping":
+			p.facing = -1
+			if(p.skillsEnabled.airDash && !p.airDashed){
+				p.vx = -5 * stageScale
+				p.vy = 0
+				p.state = "dashing"
+				p.frame = 0
+				p.airDashed = true
+			}
+			break
+		case "crouching":
+		case "sliding":
+			p.facing = -1
+		}
+	}else if(keysPressed[p.controls["right"]] && keysPressed[p.controls["action"]]){
+		switch(p.state){
+		case "idle":
+			p.facing = 1
+			if(p.skillsEnabled.fireDash){
+				p.vx = 5 * stageScale
+				p.vy = 0
+				p.state = "dashing"
+				p.frame = 0
+			}
+			break
+		case "jumping":
+			p.facing = 1
+			if(p.skillsEnabled.airDash && !p.airDashed){
+				p.vx = 5 * stageScale
+				p.vy = 0
+				p.state = "dashing"
+				p.frame = 0
+				p.airDashed = true
+			}
+			break
+		case "crouching":
+		case "sliding":
+			p.facing = 1
+		}
+	}else if(keysPressed[p.controls["crouch"]] && keysPressed[p.controls["action"]]){
+		switch(p.state){
+		case "idle":
+		case "walking":
+			if (p.skillsEnabled.earthSmash){
+				p.vx = 0
+				p.vy = -4 * stageScale
+				p.frame = 0
+				p.state = "pounding"
+				p.hitbox.height = 4/7 * p.height
+				p.hitbox.y = p.hitbox.y + p.height - p.hitbox.height
+			}
+			break
+		case "crouching":
+			if (p.skillsEnabled.earthSmash){
+				p.vx = 0
+				p.vy = -4 * stageScale
+				p.frame = 0
+				p.state = "pounding"
+			}
+			break
+		case "jumping":
+		case "sliding":
+			if (p.skillsEnabled.earthSmash){
+				p.vx = 0
+				p.vy = gravity
+				p.frame = 0
+				p.state = "pounding"
+				p.hitbox.height = 4/7 * p.height
+				p.hitbox.y = p.hitbox.y + p.height - p.hitbox.height
+			}
+		}
+	}else if(keysPressed[p.controls["crouch"]]){
+		switch(p.state){
+		case "idle":
+			p.vx = 0
+			p.state = "crouching"
+			p.hitbox.height = 4/7 * p.height
+			p.hitbox.y = p.hitbox.y + p.height - p.hitbox.height
+		}
+	}else if(keysPressed[p.controls["left"]]){
+		switch(p.state){
+		case "idle":
+		case "jumping":
+		case "sliding":
+			p.facing = -1
+			p.vx = -2 * stageScale
+			break
+		case "crouching":
+			p.facing = -1
+		}
+	}else if(keysPressed[p.controls["right"]]){
+		switch(p.state){
+		case "idle":
+		case "jumping":
+		case "sliding":
+			p.facing = 1
+			p.vx = 2 * stageScale
+			break
+		case "crouching":
+			p.facing = 1
+		}
+	}else if(keysPressed[p.controls["jump"]]){
+		switch(p.state){
+		case "idle":
+			p.vy = -4 * stageScale
+			p.state = "jumping"
+			break
+		case "jumping":
+			if (p.skillsEnabled.airJump && p.vy >= 0 && !p.doubleJumped){
+				p.vy = -4 * stageScale
+				p.doubleJumped = true
+			}
+			break
+		case "sliding":
+			p.facing *= -1
+			p.vx = 2 * stageScale * p.facing
+			p.vy = -4 * stageScale
+			p.state = "launched"
+		}
+	}else if(keysPressed[p.controls["action"]]){
+		switch(p.state){
+		case "idle":
+			if(p.skillsEnabled.fireDash){
+				p.vx = 5 * stageScale * p.facing
+				p.vy = 0
+				p.state = "dashing"
+				p.frame = 0
+			}
+			break
+		case "jumping":
+			if(p.skillsEnabled.airDash && !p.airDashed){
+				p.vx = 5 * stageScale * p.facing
+				p.vy = 0
+				p.state = "dashing"
+				p.frame = 0
+				p.airDashed = true
+			}
+			break
+		}
+	}else{
+		switch(p.state){
+		case "sliding":
+			p.vx = drag * p.facing
+		}
+	}
+
+	//use new state/locations to create a new dataset of box locations
+	//update/enter/exit boxes
+	redbHitbox = stage.selectAll("rect.hitbox#redb").data(terrain.redBackground)
+	redbHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	redbHitbox.enter().append("rect").classed("hitbox", true).attr("id", "redb").style("fill", "rgba(255,127,127,0.25)")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	redbHitbox.exit().remove()
+	
+	greenbHitbox = stage.selectAll("rect.hitbox#greenb").data(terrain.greenBackground)
+	greenbHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	greenbHitbox.enter().append("rect").classed("hitbox", true).attr("id", "greenb").style("fill", "rgba(127,255,127,0.25)")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	greenbHitbox.exit().remove()
+	
+	bluebHitbox = stage.selectAll("rect.hitbox#blueb").data(terrain.blueBackground)
+	bluebHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	bluebHitbox.enter().append("rect").classed("hitbox", true).attr("id", "blueb").style("fill", "rgba(127,127,255,0.25)")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	bluebHitbox.exit().remove()
+	
+	graybHitbox = stage.selectAll("rect.hitbox#grayb").data(terrain.grayBackground)
+	graybHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	graybHitbox.enter().append("rect").classed("hitbox", true).attr("id", "grayb").style("fill", "rgba(127,127,127,0.25)")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	graybHitbox.exit().remove()
+	
+	pHitbox = stage.selectAll("rect.hitbox#p").data([p.hitbox])
+	pHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	pHitbox.enter().append("rect").classed("hitbox", true).attr("id", "p").style("outline", "0px solid orange").style("fill", "#fc8")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	pHitbox.exit().remove()
+	
+	fHitbox = stage.selectAll("rect.hitbox#f").data(terrain.floor)
+	fHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	fHitbox.enter().append("rect").classed("hitbox", true).attr("id", "f").style("outline", "0px solid black").style("fill", "#888")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	fHitbox.exit().remove()
+	
+	lHitbox = stage.selectAll("rect.hitbox#l").data(terrain.lava)
+	lHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	lHitbox.enter().append("rect").classed("hitbox", true).attr("id", "l").style("outline", "0px solid red").style("fill", "#f88")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	lHitbox.exit().remove()
+	
+	wHitbox = stage.selectAll("rect.hitbox#w").data(terrain.water)
+	wHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	wHitbox.enter().append("rect").classed("hitbox", true).attr("id", "w").style("outline", "0px solid blue").style("fill", "rgba(127, 127, 255, 0.5)")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	wHitbox.exit().remove()
+	
+	vHitbox = stage.selectAll("rect.hitbox#v").data(terrain.vines)
+	vHitbox.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	vHitbox.enter().append("rect").classed("hitbox", true).attr("id", "v").style("outline", "0px solid green").style("fill", "#8f8")
+			.attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.width).attr("height", d => d.height)
+	vHitbox.exit().remove()
+	
+	iHitbox = stage.selectAll("circle.hitbox#i").data(terrain.items)
+	iHitbox.attr("cx", d => d.x + (d.width/2)).attr("cy", d => d.y + (d.height/2)).attr("r", d => d.width/2)
+	iHitbox.enter().append("circle").classed("hitbox", true).attr("id", "i").style("outline", "0px solid yellow").style("fill", "#ff8")
+			.attr("cx", d => d.x + (d.width/2)).attr("cy", d => d.y + (d.height/2)).attr("r", d => d.width/2)
+	iHitbox.exit().remove()
+	
+	if(!paused)
+		tickTimeout = setTimeout(tick, 1000/fps)
+}
+
+function collide(rect1, rect2){
+	return rect1.x < rect2.x + rect2.width &&
+		rect1.x + rect1.width > rect2.x &&
+		rect1.y < rect2.y + rect2.height &&
+		rect1.y + rect1.height > rect2.y
+}
+
+function move(h){
+	h.y += (p.vy * vFactor)
+	p.vy += gravity
+	checkYCollisions(h)
+	h.x += (p.vx * vFactor)
+	checkXCollisions(h)
+}
+
+function checkYCollisions(h){
+	p.grounded = false
+	terrain.floor.forEach(ter => {
+		if (collide(h, ter)){
+			if (h.y + h.height > ter.y + ter.height){
+				h.y = ter.y + ter.height
+				p.vy = 0
+			}else{
+				land(h, ter)
+			}
+		}
+	})
+	
+	wasUnderwater = p.underwater
+	p.underwater = false
+	terrain.water.forEach(ter => {
+		if (collide(h, ter)){
+			if (p.skillsEnabled.waterSurf && !wasUnderwater && Math.abs(p.vx) >= (2 * stageScale)){
+				land(h, ter)
+			}else{
+				p.underwater = true
+				if (h.y > ter.y && !p.skillsEnabled.waterBreathing && p.hp > 0){
+					takeDamage(100)
+				}
+			}
+		}
+	})
+	vFactor = p.underwater ? 0.5 : 1
+	
+	terrain.lava.forEach(ter => {
+		if (collide(h, ter)){
+			if (h.y + h.height > ter.y + ter.height && p.hp > 0){
+				takeDamage(20)
+				h.y = ter.y + ter.height
+				p.facing *= -1
+				p.vx = p.facing * 2 * stageScale
+				p.vy = 4 * stageScale
+				p.state = "launched"
+			}else{
+				if (p.skillsEnabled.lavaSurf && Math.abs(p.vx) >= (2 * stageScale)){
+					land(h, ter)
+				}else if (p.hp > 0){
+					takeDamage(20)
+					h.y = ter.y - h.height
+					p.vx = p.facing * -2 * stageScale
+					p.vy = -4 * stageScale
+					p.state = "launched"
+				}
+			}
+		}
+	})
+	
+	smashedVines = []
+	terrain.vines.forEach(ter => {
+		if (collide(h, ter)){
+			if (h.y + h.height > ter.y + ter.height){
+				if (p.skillsEnabled.jumpSmash && p.state == "jumping" && p.doubleJumped){
+					smashedVines.push(ter)
+				}else{
+					h.y = ter.y + ter.height
+					p.vy = 0
+				}
+			}else{
+				if (p.skillsEnabled.earthSmash && p.state == "pounding"){
+					smashedVines.push(ter)
+				}else{
+					land(h, ter)
+				}
+			}
+		}
+	})
+	smashedVines.forEach(ter => {
+		io = terrain.vines.indexOf(ter)
+		terrain.vines.splice(io, 1)
+	})
+	
+	if (!p.grounded && p.state != "dashing" && p.state != "launched" && p.state != "pounding"){
+		p.state = "jumping"
+	}
+	
+	if (terrain.items.length > 0 && collide(h, terrain.items[0])) {
+		currentItem = maps[currentZone].item
+		currentItem.enabled = false
+		terrain.items.pop()
+		if (currentItem.skill) p.skillsEnabled[currentItem.skill] = true
+		alert(currentItem.desc)
+		Object.values(p.controls).forEach(ctrl => {
+			keysPressed[ctrl] = false
+		})
+	}
+	
+	if (h.y < ceilingHeight - (p.height/2)){
+		currentZone = maps[currentZone].nExit
+		terrain = loadTerrain(currentZone)
+		startPosition.x = h.x
+		startPosition.y = h.y = h.y + stageHeight
+	}else if(h.y > floorHeight - (p.height/2)){
+		currentZone = maps[currentZone].sExit
+		terrain = loadTerrain(currentZone)
+		startPosition.x = h.x
+		startPosition.y = h.y = h.y - stageHeight
+	}
+}
+
+function land(h, ter){
+	h.y = ter.y - h.height
+	p.vy = gravity
+	if (p.state == "jumping" || p.state == "sliding" || p.state == "launched"){
+		p.state = "idle"
+	}else if (p.state == "pounding"){
+		p.state = "crouching"
+	}
+	p.doubleJumped = false
+	p.airDashed = false
+	p.grounded = true
+}
+
+function checkXCollisions(h){
+	terrain.floor.forEach(ter => {
+		if (collide(h, ter)){
+			h.x = ter.x + (ter.width/2) - (p.facing * ter.width/2) - (p.facing * h.width/2) - (h.width/2)
+			p.vx = 0
+			if (p.skillsEnabled.wallJump){
+				p.vy = gravity
+				p.state = "sliding"
+			}
+		}
+	})
+	
+	smashedVines = []
+	terrain.vines.forEach(ter => {
+		if (collide(h, ter)){
+			if (p.skillsEnabled.dashSmash && p.state == "dashing"){
+				smashedVines.push(ter)
+			}else{
+				h.x = ter.x + (ter.width/2) - (p.facing * ter.width/2) - (p.facing * h.width/2) - (h.width/2)
+				p.vx = 0
+				if (p.skillsEnabled.wallJump){
+					p.vy = gravity
+					p.state = "sliding"
+				}
+			}
+		}
+	})
+	smashedVines.forEach(ter => {
+		io = terrain.vines.indexOf(ter)
+		terrain.vines.splice(io, 1)
+	})
+	
+	if (h.x < boundaryWidth - (p.width/2)){
+		if (h.y < midHeight){
+			currentZone = maps[currentZone].nwExit
+			terrain = loadTerrain(currentZone)
+			startPosition.x = h.x = h.x + stageWidth
+			startPosition.y = h.y = h.y + ((stageHeightTiles/2) * terrainWidth)
+		}else{
+			currentZone = maps[currentZone].swExit
+			terrain = loadTerrain(currentZone)
+			startPosition.x = h.x = h.x + stageWidth
+			startPosition.y = h.y = h.y - ((stageHeightTiles/2) * terrainWidth)
+		}
+	}else if (h.x > bodyWidth - boundaryWidth - (p.width/2)){
+		if (h.y < midHeight){
+			currentZone = maps[currentZone].neExit
+			terrain = loadTerrain(currentZone)
+			startPosition.x = h.x = h.x - stageWidth
+			startPosition.y = h.y = h.y + ((stageHeightTiles/2) * terrainWidth)
+		}else{
+			currentZone = maps[currentZone].seExit
+			terrain = loadTerrain(currentZone)
+			startPosition.x = h.x = h.x - stageWidth
+			startPosition.y = h.y = h.y - ((stageHeightTiles/2) * terrainWidth)
+		}
+	}
+}
+
+function approach(start, end, step){
+	if(start < end){
+	    return Math.min(start + step, end);
+	}else{
+	    return Math.max(start - step, end);
+	}
+}
+
+function newPlayer(){
+	player = {
+			hp: 100,
+			stun: 0,
+			height: Math.round(characterHeightInches * stageScale),
+			width: Math.round(characterWidthInches * stageScale),
+			controls: {left: 37,
+					   right: 39,
+					   jump: 38,
+					   crouch: 40,
+					   action: 90},
+			hitbox: {},
+			facing: 1,
+			grounded: false,
+			underwater: false,
+			doubleJumped: false,
+			airDashed: false,
+			skillsEnabled: {fireDash: false,
+							airJump: false,
+							waterSurf: false,
+							earthSmash: false,
+							wallJump: false,
+							dashSmash: false,
+							waterBreathing: false,
+							airDash: false,
+							lavaSurf: false,
+							jumpSmash: false}
+	}
+	
+	player.hitbox = {x: 0, y: 0, width: player.width, height: player.height}
+	
+	return player
+}
+
+function loadTerrain(zoneName){
+	zone = maps[zoneName].map
+	terrain = {floor:[], lava:[], water:[], vines:[],
+			redBackground:[], greenBackground:[], blueBackground:[], grayBackground:[],
+			items: []}
+	
+	for(row=0; row<stageHeightTiles; row++){
+		for(col=0; col<stageWidthTiles; col++){
+			terb = {x: boundaryWidth + (col*terrainWidth), y: floorHeight - ((stageHeightTiles-row)*terrainWidth), width: terrainWidth, height: terrainWidth}
+			switch(zone[row][col]){
+			case "X":
+				terrain.floor.push(terb)
+				break
+			case "*":
+				terrain.lava.push(terb)
+				break
+			case "~":
+				terrain.water.push(terb)
+				break
+			case "#":
+				terrain.vines.push(terb)
+				break
+			case "|":
+				terrain.redBackground.push(terb)
+				break
+			case "+":
+				terrain.greenBackground.push(terb)
+				break
+			case "`":
+				terrain.blueBackground.push(terb)
+				break
+			case "x":
+				terrain.grayBackground.push(terb)
+				break
+			case "$":
+				if (maps[zoneName].item.enabled) terrain.items.push(terb)
+				break
+			}
+		}
+	}
+	
+	return terrain
+}
+
+function takeDamage(dmg){
+	p.hp = Math.max(p.hp - dmg, 0)
+	p.hp = Math.min(p.hp, 100)
+	greenBar = d3.select("rect.hpBar.green#p1")
+	bloodBar = d3.select("rect.hpBar.blood#p1")
+	redBar = d3.select("rect.hpBar.red#p1")
+	
+	p1greenX2 = parseFloat(greenBar.attr("x")) + (hpBarWidth*p.hp/100)
+	
+	bloodBar.transition().duration(0)
+			.attr("width", parseFloat(bloodBar.attr("width")) + (hpBarWidth*dmg/100))
+			.attr("x", p1greenX2)
+	greenBar.attr("width", hpBarWidth * (p.hp/100))
+			.attr("x", greenBar.attr("x"))
+	bloodBar.transition().duration(2000)
+			.attr("x", p1greenX2)
+			.attr("width", 0)
+	redBar.transition().duration(2000)
+			.attr("width", hpBarWidth * (1 - (p.hp/100)))
+			.attr("x", p1greenX2)
+			
+	if (p.hp == 0){
+		paused = true
+		clearTimeout(tickTimeout)
+		setTimeout(restart, 2000)
+	}
+}
+</script>
+</body>
+</html>

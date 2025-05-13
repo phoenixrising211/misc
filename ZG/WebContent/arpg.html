@@ -1,0 +1,552 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Infierno</title>
+<script type="text/javascript" src="javascript/d3.min.js"></script>
+<script type="text/javascript" src="javascript/arpgEnemies.js"></script>
+<link type="text/css" href="css/arena.css" rel="stylesheet">
+<link type="text/css" href="css/icons_wm.css" rel="stylesheet">
+<link type="text/css" href="css/bars.css" rel="stylesheet">
+<link type="text/css" href="css/buttons.css" rel="stylesheet">
+</head>
+<body>
+
+<script>
+var gameOver = false
+d3.select("body").style("margin", 0)
+document.addEventListener('mousedown', function(e){ e.preventDefault(); }, false);
+
+var bodyWidth = window.innerWidth
+var bodyHeight = window.innerHeight
+var boundaryWidth = 20
+var hpBarWidth = (bodyWidth/2) - (boundaryWidth*2)
+var hpBarHeight = boundaryWidth
+var hudHeight = boundaryWidth*2 + hpBarHeight
+
+var playerIcon = {"cx": bodyWidth/2.0, "cy": bodyWidth/2.0, "r": 20, "v": 3}
+var cornerX = 0
+var cornerY = 0
+var enemyIcons = []
+var playerProjectiles = []
+var enemyProjectiles = []
+var goldIcons = []
+var medpackIcons = []
+var hp = 100
+var gold = 0
+var spawnSpeed = 1.0
+
+var keysPressed = {}
+window.onkeyup = function(e) {
+	keysPressed[e.keyCode] = false
+}
+window.onkeydown = function(e) {
+	keysPressed[e.keyCode] = true
+}
+
+archery = function(e) {
+	ex = e.clientX + cornerX
+	ey = e.clientY + cornerY
+	
+	projectile1 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 6, "ttl": 120}
+	
+	dirX = ex - projectile1.cx
+	dirY = ey - projectile1.cy
+	dirH = Math.sqrt(dirX**2 + dirY**2)
+	
+	projectile1.dx = (dirX * projectile1.v)/dirH
+	projectile1.dy = (dirY * projectile1.v)/dirH
+	
+	playerProjectiles.push(projectile1)
+}
+
+magic = function(e) {
+	ex = e.clientX + cornerX
+	ey = e.clientY + cornerY
+	
+	projectile1 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 4, "ttl": 90}
+	projectile2 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 4, "ttl": 90}
+	projectile3 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 4, "ttl": 90}
+	
+	dirX1 = ex - projectile1.cx
+	dirY1 = ey - projectile1.cy
+	dirH = Math.sqrt(dirX1**2 + dirY1**2)
+	
+	projectile1.dx = (dirX1 * projectile1.v)/dirH
+	projectile1.dy = (dirY1 * projectile1.v)/dirH
+	
+	angle = Math.PI / 16.0
+	
+	projectile2.dx = (projectile1.dx * Math.cos(angle)) + (projectile1.dy * Math.sin(angle))
+	projectile2.dy = (-1 * projectile1.dx * Math.sin(angle)) + (projectile1.dy * Math.cos(angle))
+	
+	angle *= -1
+	
+	projectile3.dx = (projectile1.dx * Math.cos(angle)) + (projectile1.dy * Math.sin(angle))
+	projectile3.dy = (-1 * projectile1.dx * Math.sin(angle)) + (projectile1.dy * Math.cos(angle))
+	
+	playerProjectiles.push(projectile1)
+	playerProjectiles.push(projectile2)
+	playerProjectiles.push(projectile3)
+}
+
+sword = function(e) {
+	ex = e.clientX + cornerX
+	ey = e.clientY + cornerY
+	
+	projectile1 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 12, "ttl": 6}
+	projectile2 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 12, "ttl": 6}
+	projectile3 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 12, "ttl": 6}
+	projectile4 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 12, "ttl": 6}
+	projectile5 = {"cx": playerIcon.cx, "cy": playerIcon.cy, "r": 5, "v": 12, "ttl": 6}
+	
+	dirX1 = ex - projectile1.cx
+	dirY1 = ey - projectile1.cy
+	dirH = Math.sqrt(dirX1**2 + dirY1**2)
+	
+	projectile1.dx = (dirX1 * projectile1.v)/dirH
+	projectile1.dy = (dirY1 * projectile1.v)/dirH
+	
+	angle = Math.PI / 16.0
+	
+	projectile2.dx = (projectile1.dx * Math.cos(angle)) + (projectile1.dy * Math.sin(angle))
+	projectile2.dy = (-1 * projectile1.dx * Math.sin(angle)) + (projectile1.dy * Math.cos(angle))
+	
+	angle *= -1
+	
+	projectile3.dx = (projectile1.dx * Math.cos(angle)) + (projectile1.dy * Math.sin(angle))
+	projectile3.dy = (-1 * projectile1.dx * Math.sin(angle)) + (projectile1.dy * Math.cos(angle))
+	
+	angle = Math.PI / 8.0
+	
+	projectile4.dx = (projectile1.dx * Math.cos(angle)) + (projectile1.dy * Math.sin(angle))
+	projectile4.dy = (-1 * projectile1.dx * Math.sin(angle)) + (projectile1.dy * Math.cos(angle))
+	
+	angle *= -1
+	
+	projectile5.dx = (projectile1.dx * Math.cos(angle)) + (projectile1.dy * Math.sin(angle))
+	projectile5.dy = (-1 * projectile1.dx * Math.sin(angle)) + (projectile1.dy * Math.cos(angle))
+	
+	playerProjectiles.push(projectile1)
+	playerProjectiles.push(projectile2)
+	playerProjectiles.push(projectile3)
+	playerProjectiles.push(projectile4)
+	playerProjectiles.push(projectile5)
+}
+
+attackType = [archery, magic, sword]
+attackId = 0
+
+window.onclick = function(e) {
+	if(!gameOver){
+		attackType[attackId](e)
+	}
+}
+
+window.onauxclick = function(e) {
+	if (e.button == 1) {
+		e.preventDefault()
+		attackId--
+		if(attackId < 0) attackId = attackType.length - 1
+	}
+	return false;
+}
+
+window.oncontextmenu = function(e) {
+	e.preventDefault()
+	attackId++
+	if(attackId >= attackType.length) attackId = 0
+	return false;
+}
+
+var stage = d3.select("body").append("svg").style("width",bodyWidth - 10).style("height",bodyHeight - 10)
+				.style("outline", "5px solid black").style("margin", "5px").style("position", "absolute")
+				.attr("viewBox", "0 0 " + bodyWidth + " " + bodyHeight)
+			
+var hud = d3.select("body").append("svg").style("width",bodyWidth - 10).style("height",bodyHeight - 10)
+				.style("margin", "5px").style("position", "absolute")
+				
+var minimap = d3.select("body").append("svg").style("width",boundaryWidth*10).style("height",boundaryWidth*10)
+				.style("outline", "5px solid black").style("margin", "5px").style("position", "absolute")
+				.style("left", bodyWidth - (boundaryWidth*11) - 15).style("top", boundaryWidth + 10)
+				
+var greenBar = hud.append("rect").classed("hpBar", true).classed("green", true).style("fill", "#0f0")
+		.attr("x", boundaryWidth).attr("y", boundaryWidth).attr("width", hpBarWidth).attr("height", hpBarHeight)
+var bloodBar = hud.append("rect").classed("hpBar", true).classed("blood", true).style("fill", "#f00")
+		.attr("x", boundaryWidth + hpBarWidth).attr("y", boundaryWidth).attr("width", 0).attr("height", hpBarHeight)
+var redBar = hud.append("rect").classed("hpBar", true).classed("red", true).style("fill", "#800")
+		.attr("x", boundaryWidth + hpBarWidth).attr("y", boundaryWidth).attr("width", 0).attr("height", hpBarHeight)
+		
+var goldText = hud.append("text").style("fill", "gold").style("font", "bold 20px sans-serif")
+		.attr("x", (bodyWidth/2) + boundaryWidth).attr("y", boundaryWidth + 20).attr("width", (bodyWidth/2) - (boundaryWidth*2)).attr("height", 20)
+		.text("Gold: " + gold)
+
+var playerCircle = stage.append("circle").classed("player", true)
+					.attr("cx", playerIcon.cx)
+					.attr("cy", playerIcon.cy)
+					.attr("r", playerIcon.r)
+					.style("fill", "green")
+
+function updatePlayer(){
+	playerCircle = stage.selectAll("circle.player").data([playerIcon])
+	playerCircle.attr("cx", d => d.cx).attr("cy", d => d.cy)
+	playerCircle.enter().append("circle").classed("player", true).style("fill", "#080")
+			.attr("cx", d => d.cx).attr("cy", d => d.cy).attr("r", d => d.r)
+	playerCircle.exit().remove()
+}
+					
+function updateEnemies(){
+	var enemyCircles = stage.selectAll("circle.enemy").data(enemyIcons)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+						.style("stroke", function(d){
+							switch(d.type){
+							case "walker":
+								return "#800"
+							case "archer":
+								return "green"
+							case "mage":
+								return "blue"
+							case "soldier":
+								return "gray"
+							}
+						})
+	
+	enemyCircles.enter().append("circle").classed("enemy", true)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+						.style("fill", "red")
+						.style("stroke-width", "2px")
+						.style("stroke", function(d){
+							switch(d.type){
+							case "walker":
+								return "#800"
+							case "archer":
+								return "green"
+							case "mage":
+								return "blue"
+							case "soldier":
+								return "gray"
+							}
+						})
+						
+	enemyCircles.exit().remove()
+}
+
+function updateEnemyHealthBars(){
+	var enemyHealthBars = stage.selectAll("rect.enemyHealth").data(enemyIcons)
+					  .attr("x", function(d){return d.cx-d.r})
+					  .attr("y", function(d){return d.cy-(d.r*1.4)})
+					  .attr("width", function(d){return d.r*2*(d.hp/d.maxHp)})
+					  
+	enemyHealthBars.enter().append("rect").classed("enemyHealth", true)
+					  .attr("x", function(d){return d.cx-d.r})
+					  .attr("y", function(d){return d.cy-(d.r*1.4)})
+					  .attr("width", function(d){return d.r*2})
+					  .attr("height", "6px")
+					  .style("fill", "red")
+					  
+	enemyHealthBars.exit().remove()
+	
+	var enemyDeathBars = stage.selectAll("rect.enemyDeath").data(enemyIcons)
+					  .attr("x", function(d){return d.cx+d.r-(d.r*2*(1-(d.hp/d.maxHp)))})
+					  .attr("y", function(d){return d.cy-(d.r*1.4)})
+					  .attr("width", function(d){return d.r*2*(1-(d.hp/d.maxHp))})
+					  
+	enemyDeathBars.enter().append("rect").classed("enemyDeath", true)
+					  .attr("x", function(d){return d.cx+d.r-(d.r*2*(d.hp/d.maxHp))})
+					  .attr("y", function(d){return d.cy-(d.r*1.4)})
+					  .attr("width", function(d){return d.r*2*(1-(d.hp/d.maxHp))})
+					  .attr("height", "6px")
+					  .style("fill", "gray")
+					  
+	enemyDeathBars.exit().remove()
+	
+	enemyNames = stage.selectAll("text.enemy").data(enemyIcons)
+					  .attr("x", function(d){return d.cx})
+					  .attr("y", function(d){return d.cy-(d.r*1.6)})
+					  .attr("width", function(d){return d.r*2})
+					  .text(function(d){
+						  switch(d.type){
+						  case "walker":
+							  return "Zombie Walker"
+						  case "archer":
+							  return "Skeleton Archer"
+						  case "mage":
+							  return "Dread Necromancer"
+						  case "soldier":
+							  return "Black Knight"
+						  }
+					  })
+					
+	enemyNames.enter().append("text").classed("enemy", true)
+					  .attr("x", function(d){return d.cx})
+					  .attr("y", function(d){return d.cy-(d.r*1.6)})
+					  .attr("width", function(d){return d.r*2})
+					  .attr("text-anchor", "middle")
+					  .style("font", "bold 12px sans-serif")
+					  .style("fill", "red")
+					  .text(function(d){
+						  switch(d.type){
+						  case "walker":
+							  return "Zombie Walker"
+						  case "archer":
+							  return "Skeleton Archer"
+						  case "mage":
+							  return "Dread Necromancer"
+						  case "soldier":
+							  return "Black Knight"
+						  }
+					  })
+					  
+	enemyNames.exit().remove()
+}
+
+function updatePlayerProjectiles(){
+	var playerProjectileCircles = stage.selectAll("circle.playerProjectile").data(playerProjectiles)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+	
+	playerProjectileCircles.enter().append("circle").classed("playerProjectile", true)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+						.style("fill", "blue")
+						
+	playerProjectileCircles.exit().remove()
+}
+
+function updateEnemyProjectiles(){
+	var enemyProjectileCircles = stage.selectAll("circle.enemyProjectile").data(enemyProjectiles)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+	
+	enemyProjectileCircles.enter().append("circle").classed("enemyProjectile", true)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+						.style("fill", "orange")
+						
+	enemyProjectileCircles.exit().remove()
+}
+
+function updateGold(){
+	var goldCircles = stage.selectAll("circle.gold").data(goldIcons)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+	
+	goldCircles.enter().append("circle").classed("gold", true)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+						.style("fill", "yellow").style("stroke", "gold")
+						
+	goldCircles.exit().remove()
+}
+
+function updateMedpacks(){
+	var medpackCircles = stage.selectAll("circle.medpack").data(medpackIcons)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+	
+	medpackCircles.enter().append("circle").classed("medpack", true)
+						.attr("cx", function(d){return d.cx})
+						.attr("cy", function(d){return d.cy})
+						.attr("r", function(d){return d.r})
+						.style("fill", "#0f0").style("stroke", "green")
+						
+	medpackCircles.exit().remove()
+}
+
+function tick(){
+	if(keysPressed[87] || keysPressed[38]) playerIcon.cy -= playerIcon.v //'W' || up
+	if(keysPressed[83] || keysPressed[40]) playerIcon.cy += playerIcon.v //'S' || down
+	if(keysPressed[65] || keysPressed[37]) playerIcon.cx -= playerIcon.v //'A' || left
+	if(keysPressed[68] || keysPressed[39]) playerIcon.cx += playerIcon.v //'D' || right
+	
+	enemyIcons.forEach(function(d, i){
+		enemyIcons[i].cx += d.dx;
+		enemyIcons[i].cy += d.dy;
+		
+		dirX = playerIcon.cx - d.cx;
+		dirY = playerIcon.cy - d.cy;
+		dirH = Math.sqrt(dirX**2 + dirY**2)
+		
+		if(d.delay > 0) d.delay--
+		
+		if(dirH < (d.range)){
+			if(d.delay <= 0){
+				switch(d.type){
+				case "archer":
+					enemyArchery(d)
+					break
+				case "mage":
+					enemyMagic(d)
+					break
+				case "soldier":
+					enemySword(d)
+					break
+				default:
+					break
+				}
+				d.delay = d.maxDelay
+			}
+			enemyIcons[i].dx = 0
+			enemyIcons[i].dy = 0
+		}else{
+			enemyIcons[i].dx = (dirX * d.v)/dirH
+			enemyIcons[i].dy = (dirY * d.v)/dirH
+		}
+	})
+	
+	playerProjectiles.forEach(function(d, i){
+		if(d.ttl <= 0){
+			playerProjectiles.splice(i, 1)
+		} else {
+			playerProjectiles[i].ttl--;
+			playerProjectiles[i].cx += d.dx;
+			playerProjectiles[i].cy += d.dy;
+			
+			enemyIcons.forEach(function(e, j){
+				dirX = e.cx - d.cx;
+				dirY = e.cy - d.cy;
+				dirH = Math.sqrt(dirX**2 + dirY**2)
+				
+				if(dirH < (d.r + e.r)){
+					playerProjectiles.splice(i, 1)
+					e.hp--
+					if(e.hp <= 0){
+						enemyIcons.splice(j, 1)
+						switch(Math.floor(Math.random()*4)){
+						case 0:
+						case 1:
+						case 2:
+							goldIcons.push({"cx": e.cx, "cy": e.cy, "r": 12})
+							break
+						case 3:
+							medpackIcons.push({"cx": e.cx, "cy": e.cy, "r": 12})
+							break
+						}
+						
+					}
+				}
+			})
+		}
+	})
+	
+	enemyProjectiles.forEach(function(d, i){
+		if(d.ttl <= 0){
+			enemyProjectiles.splice(i, 1)
+		} else {
+			enemyProjectiles[i].ttl--;
+			enemyProjectiles[i].cx += d.dx;
+			enemyProjectiles[i].cy += d.dy;
+			
+			dirX = playerIcon.cx - d.cx;
+			dirY = playerIcon.cy - d.cy;
+			dirH = Math.sqrt(dirX**2 + dirY**2)
+			
+			if(dirH < (d.r + playerIcon.r)){
+				enemyProjectiles.splice(i, 1)
+				if(!takeDamage(10)) return
+			}
+		}
+	})
+	
+	goldIcons.forEach(function(d, i){
+		dirX = playerIcon.cx - d.cx;
+		dirY = playerIcon.cy - d.cy;
+		dirH = Math.sqrt(dirX**2 + dirY**2)
+		
+		if(dirH < (d.r + playerIcon.r)){
+			goldIcons.splice(i, 1)
+			gold++
+			goldText.text("Gold: " + gold)
+		}
+	})
+	
+	medpackIcons.forEach(function(d, i){
+		dirX = playerIcon.cx - d.cx;
+		dirY = playerIcon.cy - d.cy;
+		dirH = Math.sqrt(dirX**2 + dirY**2)
+		
+		if(dirH < (d.r + playerIcon.r)){
+			medpackIcons.splice(i, 1)
+			takeDamage(-10)
+		}
+	})
+	
+	updatePlayerProjectiles()
+	updateEnemyProjectiles()
+	updateGold()
+	updateMedpacks()
+	updatePlayer()
+	updateEnemies()
+	updateEnemyHealthBars()
+	
+	cornerX = playerIcon.cx - bodyWidth/2
+	cornerY = playerIcon.cy - bodyHeight/2
+	
+	stage.attr("viewBox", cornerX + " " + cornerY + " " + bodyWidth + " " + bodyHeight)
+	/*greenBar.attr("x", cornerX + boundaryWidth).attr("y", cornerY + boundaryWidth)
+	bloodBar.attr("x", cornerX + boundaryWidth + parseFloat(greenBar.attr("width"))).attr("y", cornerY + boundaryWidth)
+	redBar.attr("x", cornerX + boundaryWidth + parseFloat(greenBar.attr("width")) + parseFloat(bloodBar.attr("width"))).attr("y", cornerY + boundaryWidth)
+	goldText.attr("x", cornerX + (bodyWidth/2) + boundaryWidth).attr("y", cornerY + boundaryWidth + 20)
+	*/
+	if(!gameOver) setTimeout(tick, 1000/60)
+}
+
+function takeDamage(dmg){
+	hp = Math.max(hp - dmg, 0)
+	hp = Math.min(hp, 100)
+	greenBar = d3.select("rect.hpBar.green")
+	bloodBar = d3.select("rect.hpBar.blood")
+	redBar = d3.select("rect.hpBar.red")
+	
+	p1greenX2 = parseFloat(greenBar.attr("x")) + (hpBarWidth*hp/100)
+	
+	bloodBar.transition().duration(0)
+			.attr("width", parseFloat(bloodBar.attr("width")) + (hpBarWidth*dmg/100))
+			.attr("x", p1greenX2)
+	greenBar.attr("width", hpBarWidth * (hp/100))
+			.attr("x", greenBar.attr("x"))
+	bloodBar.transition().duration(2000)
+			.attr("x", p1greenX2)
+			.attr("width", 0)
+	redBar.transition().duration(2000)
+			.attr("width", hpBarWidth * (1 - (hp/100)))
+			.attr("x", p1greenX2)
+	
+	if(dmg > 0){
+		stage.transition().duration(0).style("outline-color", "#f00")
+		stage.transition().duration(2000).style("outline-color", "#000")
+	}else if(dmg < 0){
+		stage.transition().duration(0).style("outline-color", "#0f0")
+		stage.transition().duration(2000).style("outline-color", "#000")
+	}
+			
+	if (hp == 0){
+		gameOver = true
+		stage.interrupt().style("outline-color", "red")
+		return false
+	}
+	
+	return true
+}
+
+setTimeout(spawn, 2000, "N")
+setTimeout(spawn, 4000, "S")
+setTimeout(spawn, 6000, "W")
+setTimeout(spawn, 8000, "E")
+
+setTimeout(tick, 1000/60)
+
+</script>
+</body>
+</html>

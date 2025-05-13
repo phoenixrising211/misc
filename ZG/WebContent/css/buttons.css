@@ -1,0 +1,297 @@
+button:focus {
+	outline: 0;
+}
+
+button#selector:enabled {
+  background: #ccc;
+  background-image: -webkit-linear-gradient(top, #ccc, #aaa);
+  background-image: -moz-linear-gradient(top, #ccc, #aaa);
+  background-image: -ms-linear-gradient(top, #ccc, #aaa);
+  background-image: -o-linear-gradient(top, #ccc, #aaa);
+  background-image: linear-gradient(to bottom, #ccc, #aaa);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #000;
+  font-size: 14px;
+  padding: 5px 7px 5px 7px;
+  border: solid #888 2px;
+  text-decoration: none;
+}
+button#selector:disabled {
+  background: #eee;
+  background-image: -webkit-linear-gradient(top, #eee, #ddd);
+  background-image: -moz-linear-gradient(top, #eee, #ddd);
+  background-image: -ms-linear-gradient(top, #eee, #ddd);
+  background-image: -o-linear-gradient(top, #eee, #ddd);
+  background-image: linear-gradient(to bottom, #eee, #ddd);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #888;
+  font-size: 14px;
+  padding: 5px 7px 5px 7px;
+  border: solid #bbb 2px;
+  text-decoration: none;
+}
+
+button#A:enabled, div.buttony#A {
+  background: #39d;
+  background-image: -webkit-linear-gradient(top, #39d, #38b);
+  background-image: -moz-linear-gradient(top, #39d, #38b);
+  background-image: -ms-linear-gradient(top, #39d, #38b);
+  background-image: -o-linear-gradient(top, #39d, #38b);
+  background-image: linear-gradient(to bottom, #39d, #38b);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #268 2px;
+  text-decoration: none;
+}
+button#A:disabled, div.buttony#A:disabled {
+  background: #9ad;
+  background-image: -webkit-linear-gradient(top, #9ad, #89b);
+  background-image: -moz-linear-gradient(top, #9ad, #89b);
+  background-image: -ms-linear-gradient(top, #9ad, #89b);
+  background-image: -o-linear-gradient(top, #9ad, #89b);
+  background-image: linear-gradient(to bottom, #9ad, #89b);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #888;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #678 2px;
+  text-decoration: none;
+}
+button#A:enabled:hover, button#A.selected:hover {
+  background: #3bf;
+  background-image: -webkit-linear-gradient(top, #3bf, #3ad);
+  background-image: -moz-linear-gradient(top, #3bf, #3ad);
+  background-image: -ms-linear-gradient(top, #3bf, #3ad);
+  background-image: -o-linear-gradient(top, #3bf, #3ad);
+  background-image: linear-gradient(to bottom, #3bf, #3ad);
+  text-decoration: none;
+}
+button#A.selected {
+  background: #5df;
+  background-image: -webkit-linear-gradient(top, #5df, #5cd);
+  background-image: -moz-linear-gradient(top, #5df, #5cd);
+  background-image: -ms-linear-gradient(top, #5df, #5cd);
+  background-image: -o-linear-gradient(top, #5df, #5cd);
+  background-image: linear-gradient(to bottom, #5df, #5cd);
+  color: #fff;
+  text-decoration: none;
+}
+
+button#B, div.buttony#B {
+  background: #7d3;
+  background-image: -webkit-linear-gradient(top, #7d3, #6b3);
+  background-image: -moz-linear-gradient(top, #7d3, #6b3);
+  background-image: -ms-linear-gradient(top, #7d3, #6b3);
+  background-image: -o-linear-gradient(top, #7d3, #6b3);
+  background-image: linear-gradient(to bottom, #7d3, #6b3);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #482 2px;
+  text-decoration: none;
+}
+button#B:disabled, div.buttony#B:disabled {
+  background: #8d9;
+  background-image: -webkit-linear-gradient(top, #8d9, #7b8);
+  background-image: -moz-linear-gradient(top, #8d9, #7b8);
+  background-image: -ms-linear-gradient(top, #8d9, #7b8);
+  background-image: -o-linear-gradient(top, #8d9, #7b8);
+  background-image: linear-gradient(to bottom, #8d9, #7b8);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #888;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #586 2px;
+  text-decoration: none;
+}
+button#B:enabled:hover, button#B.selected:hover {
+  background: #9f3;
+  background-image: -webkit-linear-gradient(top, #9f3, #8d3);
+  background-image: -moz-linear-gradient(top, #9f3, #8d3);
+  background-image: -ms-linear-gradient(top, #9f3, #8d3);
+  background-image: -o-linear-gradient(top, #9f3, #8d3);
+  background-image: linear-gradient(to bottom, #9f3, #8d3);
+  text-decoration: none;
+}
+button#B.selected {
+  background: #bf5;
+  background-image: -webkit-linear-gradient(top, #bf5, #ad5);
+  background-image: -moz-linear-gradient(top, #bf5, #ad5);
+  background-image: -ms-linear-gradient(top, #bf5, #ad5);
+  background-image: -o-linear-gradient(top, #bf5, #ad5);
+  background-image: linear-gradient(to bottom, #bf5, #ad5);
+  color: #fff;
+  text-decoration: none;
+}
+
+button#C, div.buttony#C {
+  background: #d35;
+  background-image: -webkit-linear-gradient(top, #d35, #b34);
+  background-image: -moz-linear-gradient(top, #d35, #b34);
+  background-image: -ms-linear-gradient(top, #d35, #b34);
+  background-image: -o-linear-gradient(top, #d35, #b34);
+  background-image: linear-gradient(to bottom, #d35, #b34);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #822 2px;
+  text-decoration: none;
+}
+button#C:disabled, div.buttony#C:disabled {
+  background: #d96;
+  background-image: -webkit-linear-gradient(top, #d96, #b85);
+  background-image: -moz-linear-gradient(top, #d96, #b85);
+  background-image: -ms-linear-gradient(top, #d96, #b85);
+  background-image: -o-linear-gradient(top, #d96, #b85);
+  background-image: linear-gradient(to bottom, #d96, #b85);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px;
+  font-family: Arial;
+  color: #888;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #863 2px;
+  text-decoration: none;
+}
+button#C:enabled:hover, button#C.selected:hover {
+  background: #f37;
+  background-image: -webkit-linear-gradient(top, #f37, #d36);
+  background-image: -moz-linear-gradient(top, #f37, #d36);
+  background-image: -ms-linear-gradient(top, #f37, #d36);
+  background-image: -o-linear-gradient(top, #f37, #d36);
+  background-image: linear-gradient(to bottom, #f37, #d36);
+  text-decoration: none;
+}
+button#C.selected {
+  background: #f59;
+  background-image: -webkit-linear-gradient(top, #f59, #d58);
+  background-image: -moz-linear-gradient(top, #f59, #d58);
+  background-image: -ms-linear-gradient(top, #f59, #d58);
+  background-image: -o-linear-gradient(top, #f59, #d58);
+  background-image: linear-gradient(to bottom, #f59, #d58);
+  color: #fff;
+  text-decoration: none;
+}
+
+button#uparrow, div.buttony#uparrow, button.tab {
+  background: #ccc;
+  background-image: -webkit-linear-gradient(top, #ccc, #aaa);
+  background-image: -moz-linear-gradient(top, #ccc, #aaa);
+  background-image: -ms-linear-gradient(top, #ccc, #aaa);
+  background-image: -o-linear-gradient(top, #ccc, #aaa);
+  background-image: linear-gradient(to bottom, #ccc, #aaa);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px 30px 0px 0px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #888 2px;
+  text-decoration: none;
+}
+button#uparrow:hover, button#uparrow.selected:hover, button.tab:hover, button.tab.selected:hover,
+button#leftarrow:hover, button#leftarrow.selected:hover,
+button#v:hover, button#v.selected:hover,
+button#rightarrow:hover, button#rightarrow.selected:hover,
+button#selector:enabled:hover, button#selector.selected:hover {
+  background: #ddd;
+  background-image: -webkit-linear-gradient(top, #ddd, #bbb);
+  background-image: -moz-linear-gradient(top, #ddd, #bbb);
+  background-image: -ms-linear-gradient(top, #ddd, #bbb);
+  background-image: -o-linear-gradient(top, #ddd, #bbb);
+  background-image: linear-gradient(to bottom, #ddd, #bbb);
+  text-decoration: none;
+}
+button#uparrow.selected, button.tab.selected, button#leftarrow.selected,
+button#v.selected, button#rightarrow.selected,
+button#selector.selected {
+  background: #eee;
+  background-image: -webkit-linear-gradient(top, #eee, #ccc);
+  background-image: -moz-linear-gradient(top, #eee, #ccc);
+  background-image: -ms-linear-gradient(top, #eee, #ccc);
+  background-image: -o-linear-gradient(top, #eee, #ccc);
+  background-image: linear-gradient(to bottom, #eee, #ccc);
+  color: #fff;
+  text-decoration: none;
+}
+
+button#leftarrow, div.buttony#leftarrow {
+  background: #ccc;
+  background-image: -webkit-linear-gradient(top, #ccc, #aaa);
+  background-image: -moz-linear-gradient(top, #ccc, #aaa);
+  background-image: -ms-linear-gradient(top, #ccc, #aaa);
+  background-image: -o-linear-gradient(top, #ccc, #aaa);
+  background-image: linear-gradient(to bottom, #ccc, #aaa);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 30px 0px 0px 30px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #888 2px;
+  text-decoration: none;
+}
+
+button#v, div.buttony#v {
+  background: #ccc;
+  background-image: -webkit-linear-gradient(top, #ccc, #aaa);
+  background-image: -moz-linear-gradient(top, #ccc, #aaa);
+  background-image: -ms-linear-gradient(top, #ccc, #aaa);
+  background-image: -o-linear-gradient(top, #ccc, #aaa);
+  background-image: linear-gradient(to bottom, #ccc, #aaa);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 0px 0px 30px 30px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #888 2px;
+  text-decoration: none;
+}
+
+button#rightarrow, div.buttony#rightarrow {
+  background: #ccc;
+  background-image: -webkit-linear-gradient(top, #ccc, #aaa);
+  background-image: -moz-linear-gradient(top, #ccc, #aaa);
+  background-image: -ms-linear-gradient(top, #ccc, #aaa);
+  background-image: -o-linear-gradient(top, #ccc, #aaa);
+  background-image: linear-gradient(to bottom, #ccc, #aaa);
+  -webkit-border-radius: 30;
+  -moz-border-radius: 30;
+  border-radius: 0px 30px 30px 0px;
+  font-family: Arial;
+  color: #000;
+  font-size: 20px;
+  padding: 10px 14px 10px 14px;
+  border: solid #888 2px;
+  text-decoration: none;
+}

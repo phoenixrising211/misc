@@ -1,0 +1,72 @@
+.greenbar {
+	float: left;
+	background-color: #0f0;
+	height: 18px;
+}
+.bloodbar {
+	float: left;
+	background-color: #f00;
+	height: 18px;
+}
+.redbar {
+	float: right;
+	background-color: #800;
+	height: 18px;
+}
+.greenbarRTL {
+	float: right;
+	background-color: #0f0;
+	height: 18px;
+}
+.bloodbarRTL {
+	float: right;
+	background-color: #f00;
+	height: 18px;
+}
+.redbarRTL {
+	float: left;
+	background-color: #800;
+	height: 18px;
+}
+
+.purplebar {
+	float: left;
+	background-color: #c2f;
+	height: 18px;
+}
+.yellowbar {
+	float: right;
+	background-color: #660;
+	height: 18px;
+}
+.purplebarRTL {
+	float: right;
+	background-color: #c2f;
+	height: 18px;
+}
+.yellowbarRTL {
+	float: left;
+	background-color: #660;
+	height: 18px;
+}
+
+.orangebar {
+	float: left;
+	background-color: #fa2;
+	height: 9px;
+}
+.bluebar {
+	float: right;
+	background-color: #008;
+	height: 9px;
+}
+.orangebarRTL {
+	float: right;
+	background-color: #fa2;
+	height: 9px;
+}
+.bluebarRTL {
+	float: left;
+	background-color: #008;
+	height: 9px;
+}

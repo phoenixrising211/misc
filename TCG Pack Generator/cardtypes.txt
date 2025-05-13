@@ -1,0 +1,5 @@
+Artifact
+Creature
+Enchantment
+Instant
+Sorcery

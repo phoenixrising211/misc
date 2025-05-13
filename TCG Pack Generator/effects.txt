@@ -1,0 +1,5 @@
+you gain 2 life|1
+draw a card|2
+destroy target creature|3
+$n deals 3 damage to any target|1.5
+target creature gets +3/+3 until end of turn|3

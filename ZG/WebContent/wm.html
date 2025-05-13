@@ -1,0 +1,1005 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Westmarch.js</title>
+<script type="text/javascript" src="javascript/d3.min.js"></script>
+<script type="text/javascript" src="javascript/wmQuests.js"></script>
+<script type="text/javascript" src="javascript/wmSkills.js"></script>
+<script type="text/javascript" src="javascript/wmCreatures.js"></script>
+<script type="text/javascript" src="javascript/names.js"></script>
+<link type="text/css" href="css/arena.css" rel="stylesheet">
+<link type="text/css" href="css/icons_wm.css" rel="stylesheet">
+<link type="text/css" href="css/bars.css" rel="stylesheet">
+<link type="text/css" href="css/buttons.css" rel="stylesheet">
+</head>
+<body>
+<div id="leftSide" style="width:636px; height:860px; float:left">
+	<div id="partyHpPanel" class="panel"></div>
+	<div id="textPanel" class="bigpanel" style="height:332px"></div>
+	<div id="monsterHpPanel" class="panel"></div>
+	<div id="optionsPanel" class="shortbox" style="width:630px">
+		<button style="color:red" onClick="newGame()">New Game</button>
+		<button onClick="ff()">Toggle Fast Forward</button>
+	</div>
+</div>
+<div id="middleSide" style="width:331px; height:860px; float:left">
+	<div id="regionInfobox" class="shortbox"></div>
+	<div id="questInfobox" class="shortbox" style="height:60px"></div>
+	<div id="goldInfobox" class="shortbox" style="background-color:#ff0;"></div>
+	<div id="statsInfobox" class="infobox" style="height:566px"></div>
+	<div id="descPanel" class="shortbox" style="height:156px; overflow-y:hidden; background:#000"></div>
+</div>
+<div id="rightSide" style="width:636px; height:860px; float:left">
+	<div id="tabBar" class="tabbar">
+		<button class="tab selected" id="inventoryTab" onclick="openTab(event, 'inventory')">Inventory</button>
+		<button class="tab" id="guildTab" style="display:none" onclick="openTab(event, 'guild')">Guild</button>
+		<button class="tab" id="kingdomTab" style="display:none" onclick="openTab(event, 'kingdom')">Kingdom</button>
+	</div>
+	<div id="inventoryPanel" class="bigpanel">
+		<h1>This is your inventory!</h1>
+	</div>
+	<div id="guildPanel" class="bigpanel" style="display:none">
+		<div><h2>Adventurer's Guildhall</h2></div>
+		<div id="guildLevelInfobox"></div>
+		<div id="mentorshipInfobox"></div>
+		<button id="B" onclick="retire()">Retire</button> to gain <span id="pendingMentorshipValue"></span> mentorship.
+		<table style="text-align:center">
+			<tr>
+				<th/>
+				<th/>
+				<th>Guild:</th>
+				<th/>
+			</tr>
+			<tr>
+				<td><button class="building clickable" id="guildUpgradeButton" onclick="guildUpgrade('wisdom')" disabled>
+					<div class="icon" style="background:url(icons/plus.png) no-repeat; background-size:29px 29px;"></div>
+					<div class="cost" id="guildUpgradeCost"></div>
+					<div class="description">
+						<p class="descTitle">Level Up Wisdom</p><br/>
+						<p class="descText">Increase your XP gain by 20%</p>
+					</div>
+				</button></td>
+				<td style="text-align:right;">WISDOM:</td>
+				<td id="wisdomValue"></td>
+				<td style="text-align:left;">XP gain</td>
+			</tr>
+			<tr>
+				<td><button class="building clickable" id="guildUpgradeButton" onclick="guildUpgrade('perception')" disabled>
+					<div class="icon" style="background:url(icons/plus.png) no-repeat; background-size:29px 29px;"></div>
+					<div class="cost" id="guildUpgradeCost"></div>
+					<div class="description">
+						<p class="descTitle">Level Up Perception</p><br/>
+						<p class="descText">Increase your Gold gain by 20%</p>
+					</div>
+				</button></td>
+				<td style="text-align:right;">PERCEPTION:</td>
+				<td id="perceptionValue"></td>
+				<td style="text-align:left;">Gold gain</td>
+			</tr>
+			<tr>
+				<td><button class="building clickable" id="guildUpgradeButton" onclick="guildUpgrade('efficiency')" disabled>
+					<div class="icon" style="background:url(icons/plus.png) no-repeat; background-size:29px 29px;"></div>
+					<div class="cost" id="guildUpgradeCost"></div>
+					<div class="description">
+						<p class="descTitle">Level Up Efficiency</p><br/>
+						<p class="descText">Reduce all quest timers by 10%</p>
+					</div>
+				</button></td>
+				<td style="text-align:right;">EFFICIENCY:</td>
+				<td id="efficiencyValue"></td>
+				<td style="text-align:left;">Quest timer reduction</td>
+			</tr>
+		</table>
+	</div>
+	<div id="kingdomPanel" class="bigpanel" style="display:none">
+		<div><h2>Kingdom</h2></div>
+		<div id="kingdomLevelInfobox"></div>
+		<div id="authorityInfobox"></div>
+		<button id="B" onclick="takePower()">Take Power</button> to gain <span id="pendingAuthorityValue"></span> authority.
+		<table style="text-align:center">
+			<tr>
+				<th/>
+				<th/>
+				<th>Kingdom:</th>
+				<th/>
+			</tr>
+			<tr>
+				<td><button class="building clickable" id="kingdomUpgradeButton" onclick="kingdomUpgrade('domain')" disabled>
+					<div class="icon" style="background:url(icons/plus.png) no-repeat; background-size:29px 29px;"></div>
+					<div class="cost" id="kingdomUpgradeCost"></div>
+					<div class="description">
+						<p class="descTitle">Level Up Domain</p><br/>
+						<p class="descText">Increase your Mentorship gain by 10%</p>
+					</div>
+				</button></td>
+				<td style="text-align:right;">DOMAIN:</td>
+				<td id="domainValue"></td>
+				<td style="text-align:left;">Mentorship gain</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<script>
+var state = {};
+
+var tickLength = 100;
+var questCount = 0.0;
+var baseQuestDelay = 150.0;
+var questDelay = baseQuestDelay;
+
+var selectedDiv = null;
+
+var battleTimeout = null;
+    		
+var tp = d3.select("#textPanel");
+var php = d3.select("#partyHpPanel");
+var mhp = d3.select("#monsterHpPanel");
+var op = d3.select("#optionsPanel");
+
+var ri = d3.select("#regionInfobox");
+var qi = d3.select("#questInfobox");
+var gi = d3.select("#goldInfobox");
+var si = d3.select("#statsInfobox");
+
+var rs = d3.select("#rightSide");
+var tb = d3.select("#tabBar");
+var it = d3.select("#inventoryTab");
+
+var gt = d3.select("#guildTab");
+var gli = d3.select("#guildLevelInfobox");
+var mi = d3.select("#mentorshipInfobox");
+var pmv = d3.select("#pendingMentorshipValue");
+var guc = d3.selectAll("#guildUpgradeCost");
+var gub = d3.selectAll("#guildUpgradeButton");
+var wv = d3.select("#wisdomValue");
+var pv = d3.select("#perceptionValue");
+var ev = d3.select("#efficiencyValue");
+
+var kt = d3.select("#kingdomTab");
+var kli = d3.select("#kingdomLevelInfobox");
+var ai = d3.select("#authorityInfobox");
+var pav = d3.select("#pendingAuthorityValue");
+var kuc = d3.selectAll("#kingdomUpgradeCost");
+var kub = d3.selectAll("#kingdomUpgradeButton");
+var dv = d3.select("#domainValue");
+
+var e3 = ["", "mi", "bi", "tri", "quadri", "quinti", "sexti", "septi", "octi", "noni"];
+var e30prefixes = ["", "un", "duo", "tre", "quattor", "quin", "sex", "septen", "octo", "novem"];
+var e30suffixes = ["", "deci", "viginti", "triginti", "quadraginti", "quinquaginti", "sexaginti", "septuaginti", "octoginti", "nonaginti"];
+var e300suffixes = ["", "centi", "ducenti", "trecenti", "quadrincenti", "quincenti", "sescenti", "septincenti", "octincenti", "noncenti"];
+
+var update = function(textToAdd){
+	tp.select("text").remove();
+	tp.append("text").text(textToAdd).append("br");
+}
+
+var format = function(number){
+	if(number <= 1000000) return d3.format(",")(number);
+	else{
+		number /= 1000000;
+		var e3idx = 1;
+		while(number >= 1000){
+			number /= 1000;
+			e3idx++;
+		}
+		if(e3idx <= 9) return number.toFixed(3).replace(/\.?0+$/,"") + " " + e3[e3idx] + "llion";
+		else{
+			e3idx -= 10;
+			var e30idx = 1;
+			var e300idx = 0;
+			while(e3idx > 9){
+				e3idx -= 10;
+				e30idx++;
+			}
+			while(e30idx > 9){
+				e30idx -= 10;
+				e300idx++;
+			}
+			return number.toFixed(3).replace(/\.?0+$/,"") + " " + e30prefixes[e3idx] + e30suffixes[e30idx] + e300suffixes[e300idx] + "llion";
+		}
+	}
+}
+
+for(var i=0; i<18; i++){
+	tp.append("text").text("").append("br");
+}
+
+var newGame = function(){
+	state.guildUnlocked = false;
+	state.kingdomUnlocked = false;
+	
+	resetWorld();
+	resetGuild();
+	resetKingdom();
+	
+	start();
+}
+
+var resetWorld = function(){
+	php.selectAll("*").remove();
+	state.party = [];
+	state.mob = [];
+	
+	state.gold = 0;
+	state.world = 0;
+	state.region = 0;
+	state.quest = 0;
+	state.multiplier = 1.0; //monster stat multiplier
+	state.rMultiplier = 1.0; //rewards (gold/xp) multiplier
+	state.mMultiplier = 1.0; //mentorship multiplier
+	state.aMultiplier = 1.0; //authority multiplier
+	state.upgrader = 0;
+	state.diem = false;
+	
+	d3.shuffle(names)
+	
+	state.party[0] = createCleric(names[0] + " the ", 0);
+	state.party[1] = createFighter(names[1] + " the ", 0);
+	state.party[2] = createMage(names[2] + " the ", 0);
+	state.party[3] = createRogue(names[3] + " the ", 0);
+	
+	for(var i=0; i<4; i++){
+		state.party[i].id = "party" + i
+	}
+	
+	state.storage = {};
+
+	worlds.forEach(function(w){
+		regions.forEach(function(r){
+			r.materials.forEach(function(rm){
+				state.storage[w+rm] = 0
+			})
+		})
+	})
+}
+
+var resetGuild = function(){
+	state.guild = {
+		level: 0,
+		pendingMentorship: 0,
+		mentorship: 0,
+		wisdom: 1.0,
+		perception: 1.0,
+		efficiency: 1.0
+	};
+}
+
+var retire = function(){
+	resetWorld();
+	
+	state.guild.mentorship += state.guild.pendingMentorship;
+	state.guild.pendingMentorship = 0;
+	var guildUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), state.guild.level/2.0));
+	if(guildUpgradeCost <= state.guild.mentorship) gub.attr("disabled", null);
+	
+	start();
+}
+
+var resetKingdom = function(){
+	state.kingdom = {
+		level: 0,
+		pendingAuthority: 0,
+		authority: 0,
+		domain: 1.0,
+	};
+}
+
+var takePower = function(){
+	resetWorld();
+	resetGuild();
+	
+	state.kingdom.authority += state.kingdom.pendingAuthority;
+	state.kingdom.pendingAuthority = 0;
+	var kingdomUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), state.kingdom.level/2.0));
+	if(kingdomUpgradeCost <= state.kingdom.authority) kub.attr("disabled", null);
+	
+	start();
+}
+
+var loadGame = function(){
+	stateString = localStorage.getItem("WestmarchIdleSavedGame")
+	state = JSON.parse(stateString)
+	
+	if(state.guildUnlocked) gt.style("display", "block");
+	var guildUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), state.guild.level/2.0));
+	if(guildUpgradeCost <= state.guild.mentorship) gub.attr("disabled", null);
+	
+	if(state.kingdomUnlocked) kt.style("display", "block");
+	var kingdomUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), state.kingdom.level/2.0));
+	if(kingdomUpgradeCost <= state.kingdom.authority) kub.attr("disabled", null);
+	
+	start();
+}
+
+var start = function(){
+	php.selectAll("*").remove()
+	for(var i=0; i<4; i++){
+		var newDiv = php.append("div").classed("creatureDiv", true);
+		newDiv.attr("divNum", i).classed("hp", true);
+		if(i==0 || i==2) newDiv.classed("left", true)
+		else newDiv.classed("right", true);
+		
+		var newTable = newDiv.append("table").style("width","300px");
+		colgroup = newTable.append("colgroup");
+		colgroup.append("col").style("width","100px");
+		colgroup.append("col").style("width","100px");
+		colgroup.append("col").style("width","100px");
+
+		nameRow = newTable.append("tr");
+		nameCell = nameRow.append("td").style("width","300px").attr("colspan", "3");
+		nameCell.append("text").classed("left", true).attr("id", state.party[i].id + "namelabel").style("color", "#080").style("font-weight", "bold")
+				.text(state.party[i].name + state.party[i].className);
+		
+		levelRow = newTable.append("tr");
+		levelCell = levelRow.append("td").style("width","100px");
+		levelCell.append("text").classed("left", true).attr("id", state.party[i].id + "lvlabel").style("color", "#008").style("font-weight", "bold")
+				.text("Level " + state.party[i].level);
+		xpCell = levelRow.append("td").style("width","200px").attr("colspan", "2");
+		xpCell.append("text").classed("right", true).attr("id", state.party[i].id + "xplabel").style("color", "#008").style("font-weight", "bold")
+			.text(format(state.party[i].xp) + " XP");
+		
+		hpRow = newTable.append("tr");
+		hpBarCell = hpRow.append("td").style("width","200px").attr("colspan", "2");
+		hpBarCell.append("div").classed("greenbar", true).attr("id", state.party[i].id + "greenbar").style("width", (state.party[i].hp * 2) + "px");
+		hpBarCell.append("div").classed("bloodbar", true).attr("id", state.party[i].id + "bloodbar").style("width", "0px");
+		hpBarCell.append("div").classed("redbar", true).attr("id", state.party[i].id + "redbar").style("width", ((100 - state.party[i].hp) * 2) + "px");
+		hpLabelCell = hpRow.append("td").style("width","100px");
+		hpLabelCell.append("text").classed("right", true).attr("id", state.party[i].id + "hplabel").style("color", "#080").style("font-weight", "bold")
+				.text(state.party[i].hp + "% HP");
+		
+		delayRow = newTable.append("tr");
+		delayBarCell = delayRow.append("td").style("width","200px").attr("colspan", "2");
+		delayBarCell.append("div").classed("orangebar", true).attr("id", state.party[i].id + "orangebar").style("width", "0px");
+		delayBarCell.append("div").classed("bluebar", true).attr("id", state.party[i].id + "bluebar").style("width", "200px");
+		delayLabelCell = delayRow.append("td").style("width","100px");
+		delayLabelCell.append("text").classed("right", true).attr("id", state.party[i].id + "delaylabel").style("color", "#f80").style("font-weight", "bold")
+				.text((state.party[i].count*6/getSpd(state.party[i])).toFixed(1) + "/" + (state.party[i].delay*6/getSpd(state.party[i])).toFixed(1) + " sec");
+		
+		skillRow = newTable.append("tr");
+		skillCell = skillRow.append("td").style("width", "300px").attr("colspan", "3");
+		
+		Object.keys(state.party[i].skills).forEach(function(key){
+			var obj = state.party[i].skills[key];
+			var powerDiv = skillCell.append("button").classed("building", true).classed("clickable", true)
+								.classed("mini", true).attr("divNum", i)
+								.attr("id", state.party[i].id + key).classed("locked", obj.locked).on("click", function(){
+										event.cancelBubble = true;
+										if(event.stopPropagation) event.stopPropagation();
+										var that = d3.select(this);
+										window[obj.fn](that);
+									});
+			powerDiv.append("div").classed("icon", true).style("background", "url(icons/skills/" + obj.icon + ".png) no-repeat")
+					.style("background-size", "29px 29px");
+			descDiv = powerDiv.append("div").classed("description", true).classed("wm", true);
+			descDiv.append("p").classed("descTitle", true).text(obj.name)
+					.append("p").classed("descText", true).text(obj.desc);
+			obj.button = powerDiv;
+		})
+		newDiv.on("click", toggleHumanStats);
+	}
+
+	qi.selectAll("*").remove();
+	var newTable = qi.append("table").style("width","325px");
+	colgroup = newTable.append("colgroup");
+	colgroup.append("col").style("width","200px");
+	colgroup.append("col").style("width","125px");
+	
+	textRow = newTable.append("tr");
+	textCell = textRow.append("td").style("width","325px").attr("colspan", "2").style("height","36px");
+	textCell.append("text").attr("id", "qiquestdesc").text("Westmarch Idle Game");
+	
+	questDelay = baseQuestDelay / state.guild.efficiency;
+	delayRow = newTable.append("tr");
+	delayBarCell = delayRow.append("td").style("width","200px");
+	delayBarCell.append("div").classed("orangebar", true).attr("id", "qiorangebar").style("width", "0px");
+	delayBarCell.append("div").classed("bluebar", true).attr("id", "qibluebar").style("width", "200px");
+	delayLabelCell = delayRow.append("td").style("width","125px");
+	delayLabelCell.append("text").classed("right", true).attr("id", "qidelaylabel").style("color", "#f80").style("font-weight", "bold")
+			.text(questCount.toFixed(1) + "/" + questDelay.toFixed(1) + " sec");
+	
+	gi.selectAll("*").remove();
+	gi.append("text").text("GOLD: " + format(state.gold));
+	
+	gli.selectAll("*").remove();
+	gli.append("text").text("Level " + format(state.guild.level));
+	mi.selectAll("*").remove();
+	mi.append("text").text("MENTORSHIP: " + format(state.guild.mentorship));
+	pmv.selectAll("*").remove();
+	pmv.append("text").text(format(state.guild.pendingMentorship));
+	wv.selectAll("*").remove();
+	wv.append("text").text(format(Math.round(state.guild.wisdom * 100)) + "%");
+	pv.selectAll("*").remove();
+	pv.append("text").text(format(Math.round(state.guild.perception * 100)) + "%");
+	ev.selectAll("*").remove();
+	ev.append("text").text(format(Math.round(state.guild.efficiency * 100)) + "%");
+	guc.selectAll("*").remove();
+	var guildUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), state.guild.level/2.0));
+	guc.append("text").text(guildUpgradeCost);
+	
+	kli.selectAll("*").remove();
+	kli.append("text").text("Level " + format(state.kingdom.level));
+	ai.selectAll("*").remove();
+	ai.append("text").text("AUTHORITY: " + format(state.kingdom.authority));
+	pav.selectAll("*").remove();
+	pav.append("text").text(format(state.kingdom.pendingAuthority));
+	dv.selectAll("*").remove();
+	dv.append("text").text(format(Math.round(state.kingdom.domain * 100)) + "%");
+	kuc.selectAll("*").remove();
+	var kingdomUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), state.kingdom.level/2.0));
+	kuc.append("text").text(kingdomUpgradeCost);
+	
+	inn();
+}
+
+function setupBattle(){
+	update("You are in the " + worlds[state.world] + regions[state.region].name);
+	determineMonsters();
+	update("You are attacked by " + ((state.mob.length > 1) ? state.mob.length + " " : "a ") + state.mob[0].name + ((state.mob.length > 1) ? "s" : "") + "!");
+	update("");
+	ri.style("background-color", regions[state.region].color);
+	ri.text(regions[state.region].name);
+	d3.select("#qiquestdesc").text(regions[state.region].quests[state.quest].name);
+	
+	mhp.selectAll("*").remove();
+	if(!selectedDiv) unDisplayStats();
+	for(var i=0; i<state.mob.length; i++){
+		state.mob[i].id = "mob" + i
+		var newDiv = mhp.append("div").classed("creatureDiv", true);
+		newDiv.attr("divNum", i).classed("hp", true);
+		if(i==0 || i==2) newDiv.classed("left", true)
+		else newDiv.classed("right", true);
+		
+		var newTable = newDiv.append("table").style("width","300px");
+		colgroup = newTable.append("colgroup");
+		colgroup.append("col").style("width","200px");
+		colgroup.append("col").style("width","100px");
+		
+		nameRow = newTable.append("tr");
+		nameCell = nameRow.append("td").style("width","300px").attr("colspan", "2");
+		nameCell.append("text").classed("left", true).attr("id", state.mob[i].id + "namelabel").style("color", "#800").style("font-weight", "bold")
+				.text(state.mob[i].name + state.mob[i].className);
+		
+		hpRow = newTable.append("tr");
+		hpBarCell = hpRow.append("td").style("width","200px");
+		hpBarCell.append("div").classed("greenbar", true).attr("id", state.mob[i].id + "greenbar").style("width", "200px");
+		hpBarCell.append("div").classed("bloodbar", true).attr("id", state.mob[i].id + "bloodbar").style("width", "0px");
+		hpBarCell.append("div").classed("redbar", true).attr("id", state.mob[i].id + "redbar").style("width", "0px");
+		hpLabelCell = hpRow.append("td").style("width","100px");
+		hpLabelCell.append("text").classed("right", true).attr("id", state.mob[i].id + "hplabel").style("color", "#080").style("font-weight", "bold")
+				.text(state.mob[i].hp + "% HP");
+		
+		delayRow = newTable.append("tr");
+		delayBarCell = delayRow.append("td").style("width","200px");
+		delayBarCell.append("div").classed("orangebar", true).attr("id", state.mob[i].id + "orangebar").style("width", "0px");
+		delayBarCell.append("div").classed("bluebar", true).attr("id", state.mob[i].id + "bluebar").style("width", "200px");
+		delayLabelCell = delayRow.append("td").style("width","100px");
+		delayLabelCell.append("text").classed("right", true).attr("id", state.mob[i].id + "delaylabel").style("color", "#f80").style("font-weight", "bold")
+			.text((state.mob[i].count/getSpd(state.mob[i])).toFixed(1) + "/" + (state.mob[i].delay/getSpd(state.mob[i])).toFixed(1) + " sec");
+		
+		newDiv.on("click", toggleMonsterStats);
+	}
+	
+	battleTimeout = setTimeout(tick, tickLength);
+}
+
+var q = {
+	items: [],
+	push: function(item){
+		var contain = false;
+		for(var i=0; i < this.items.length; i++){
+			if(item.priority > this.items[i].priority){
+				this.items.splice(i, 0, item);
+				contain = true;
+				break;
+			}
+		}
+		if(!contain){
+			this.items.push(item);
+		}
+	},
+	pull: function(){
+		if (this.items.length == 0){
+			return null;
+		}
+		return this.items.shift();
+	}
+}
+
+function tick(){
+	changeQuestCount(0.1);
+	
+	creatures = state.party.concat(state.mob);
+	d3.shuffle(creatures);
+	creatures.forEach(function(c){
+		if(c.hp > 0){
+			changeCreatureCount(c, getSpd(c)/60.0);
+			c.statuses.forEach(function(s){
+				changeStatusCount(s, 0.1);
+			});
+			Object.keys(c.skills).forEach(function(s){
+				changeSkillCount(c.skills[s], 0.1);
+			});
+		}
+	});
+	setTimeout(next, 0);
+}
+
+var next = function(){
+	var qitem = q.pull();
+	if(qitem != null){
+		active = qitem.creature;
+		if(active.hp > 0){
+			var activeGroup = active.ally ? state.party : state.mob;
+			var targetGroup = active.ally ? state.mob : state.party;
+			do{
+				var hpSum = 0;
+				targetGroup.forEach(function(d){hpSum += d.hp});
+				if(hpSum == 0){
+					return;
+				}
+				var target = targetGroup[~~(Math.random() * targetGroup.length)];
+			}while(target.hp <= 0);
+			attack(active, target, {});
+			if(cont()){
+				changeCreatureCount(active, -99999);
+				battleTimeout = setTimeout(next, 0);
+			};
+		}else{
+			battleTimeout = setTimeout(next, 0);
+		}
+	}else{
+		battleTimeout = setTimeout(tick, tickLength);
+	}
+}
+
+function cont(){
+	//checkVictory
+	var partyHp = 0;
+	state.party.forEach(function(ally){
+		partyHp += ally.hp;
+	})
+	var mobHp = 0;
+	state.mob.forEach(function(monster){
+		mobHp += monster.hp;
+	})
+	
+	if(partyHp <= 0){
+		setTimeout(loseBattle, 0);
+	}else if(mobHp <= 0){
+		setTimeout(winBattle, 0);
+	}else return true;
+}
+
+var changeQuestCount = function(amt){
+	questCount += amt;
+	if(questCount >= questDelay){
+		questCount = questDelay;
+	}
+	if(questCount <= 0) questCount = 0;
+	var percent = questCount/questDelay * 100;
+	
+	d3.select("#" + "qidelaylabel").text(questCount.toFixed(1) + "/" + questDelay.toFixed(1) + " sec");
+	d3.select("#" + "qiorangebar").transition().style("width", (percent * 2) + "px").duration(tickLength);
+	d3.select("#" + "qibluebar").transition().style("width", ((100 - percent) * 2) + "px").duration(tickLength);
+}
+
+var randomizeMobTarget = function(){
+	var newTargets = [];
+	state.mob.forEach(function(elem){
+		if(elem.hp > 0) newTargets.push(elem);
+	})
+	var randInt = Math.floor(Math.random() * newTargets.length);
+	return newTargets[randInt];
+}
+
+function attack(active, target, params){
+	var text = params.text || (active.name + active.className + " attacks " + target.name + target.className + "!");
+	var accFactor = params.acc || 1.0;
+	var evaFactor = params.eva || 1.0;
+	var powFactor = params.pow || 1.0;
+	var defFactor = params.def || 1.0;
+	var rngFactor = params.rng || 1.0;
+	
+	update(text);
+	var hitRate = (getAcc(active)*accFactor)/(getEva(target)*evaFactor);
+	var crit = 1;
+	
+	if(hitRate <= 1.0){ //regular hit check
+		if(Math.random() >= hitRate) crit = 0;
+	}else{ //crit check
+		crit = 2;
+		hitRate -= 1.0;
+		while(hitRate > 0.5){
+			hitRate -= 0.5;
+			crit++;
+		}
+		if(Math.random() >= hitRate) crit = 1;
+	}
+	
+	if(crit == 0){
+		update("Miss.");
+	}else{
+		var output = "";
+		if(crit == 1){
+			output = "Hit! ";
+		}else if(crit == 2){
+			output = "Critical Hit!! ";
+		}else{
+			output = "Critical Hit x" + (crit-1) + "!!! ";
+		}
+		var avgDamage = (getPow(active)*powFactor)/(getDef(target)*defFactor) * crit * 10;
+		var damage = (Math.random() * avgDamage) + (avgDamage * 0.5);
+		var roundDamage = Math.round(damage);
+		output += target.name + target.className + " takes " + roundDamage + " damage!";
+		update(output);
+		changeHP(target, -1 * roundDamage);
+	}
+	active.delay = getRng(target)*rngFactor;
+	update("");
+}
+
+function winBattle(){
+	clearTimeout(battleTimeout);
+	q.items = [];
+	var xpReward = Math.round(10 * state.rMultiplier * state.guild.wisdom);
+	var goldReward = Math.round(10 * state.rMultiplier * state.guild.perception);
+	update("Victory!");
+	update("You gain " + format(goldReward) + " gold and " + format(xpReward) + " XP!");
+	update("");
+	for(var i=0; i<state.party.length; i++){
+		state.party[i].xp += xpReward;
+		d3.select("#" + state.party[i].id + "xplabel").text(format(state.party[i].xp) + " XP");
+	}
+	state.gold += goldReward;
+	gi.selectAll("*").remove();
+	gi.append("text").text("GOLD: " + format(state.gold));
+	if(selectedDiv != null) displayHumanStats(selectedDiv);
+	setTimeout(checkQuestRollover, 0);
+}
+
+function checkQuestRollover(){
+	if(questCount >= questDelay){
+		update(regions[state.region].quests[state.quest].name + " complete!");
+		state.quest++;
+		state.guild.pendingMentorship += Math.round(10 * state.mMultiplier * state.kingdom.domain);
+		pmv.selectAll("*").remove();
+		pmv.append("text").text(format(state.guild.pendingMentorship));
+		state.multiplier *= Math.sqrt(2);
+		state.rMultiplier *= 2;
+		if(state.quest > 4){
+			update(regions[state.region].name + " complete!");
+			state.quest = 0;
+			state.region++;
+			state.kingdom.pendingAuthority += Math.round(10 * state.aMultiplier);
+			pav.selectAll("*").remove();
+			pav.append("text").text(format(state.kingdom.pendingAuthority));
+			state.multiplier *= Math.sqrt(2);
+			state.mMultiplier *= Math.sqrt(2);
+			if(!state.guildUnlocked){
+				state.guildUnlocked = true;
+				gt.style("display", "block");
+				openTab(null, "guild");
+			}
+			if(state.region % 5 == 0){
+				update("Continent complete!");
+				state.multiplier *= Math.sqrt(2);
+				state.aMultiplier *= Math.sqrt(2);
+				if(!state.kingdomUnlocked){
+					state.kingdomUnlocked = true;
+					kt.style("display", "block");
+					openTab(null, "kingdom");
+				}
+				if(state.region >= 25){
+					update(worlds[state.world] + "World complete!");
+					state.region = 0;
+					state.world++;
+					state.multiplier *= Math.sqrt(2);
+					update("Now entering the " + worlds[state.world] + "World!");
+				}
+				update("Now arriving on a new continent!");
+			}
+			update("Now entering the " + worlds[state.world] + regions[state.region].name + "!");
+		}
+		update("New quest: " + regions[state.region].quests[state.quest].name + "\n");
+		update("");
+		
+		state.party.forEach(function(d){
+			reset(d);
+		});
+		changeQuestCount(-99999);
+	}
+	setTimeout(setupBattle, 20 * tickLength);
+}
+
+function loseBattle(){
+	clearTimeout(battleTimeout);
+	state.mob.forEach(function(monster){
+		monster.hp = 0;
+	})
+	q.items = [];
+	update("Defeated...");
+	var reward = Math.round(state.rMultiplier);
+	update("You gain " + format(reward) + " gold and " + format(reward) + " XP!");
+	for(var i=0; i<state.party.length; i++){
+		state.party[i].xp += reward;
+		d3.select("#" + state.party[i].id + "xplabel").text(format(state.party[i].xp) + " XP");
+	}
+	state.gold += reward;
+	gi.selectAll("*").remove();
+	gi.append("text").text("GOLD: " + format(state.gold));
+	setTimeout(inn, 20 * tickLength);
+}
+
+function inn(){	
+	update("You rest and heal at the inn.");
+	update("You return to the beginning of the arena.");
+	update("");
+	state.party.forEach(function(d){
+		reset(d);
+	});
+	if(selectedDiv != null) displayHumanStats(selectedDiv);
+	
+	changeQuestCount(-99999);
+	setTimeout(setupBattle, 20 * tickLength);
+}
+
+function toggleHumanStats(){
+	var thisDiv = d3.select(this);
+	if(thisDiv.classed("selected")){
+		unDisplayStats(thisDiv);
+	}else{
+		displayHumanStats(thisDiv);
+	}
+}
+
+function displayHumanStats(thisDiv){
+	si.selectAll("*").remove();
+	d3.select("div.selected").classed("selected", false);
+	thisDiv.classed("selected", true);
+	selectedDiv = thisDiv;
+	var index = thisDiv.attr("divNum");
+	var human = state.party[index];
+	var weapon = human.weapon;
+	var armor = human.armor;
+	
+	var statUpgradeCost = Math.round(40 * Math.pow(Math.sqrt(2), human.level/2.0));
+	
+	si.append("text").text(human.name + human.className).append("br");
+	si.append("text").text(human.hp + "% HP").append("br");
+	si.append("text").text("Level " + human.level).append("br");
+	si.append("text").text(format(human.xp) + " XP").append("br");
+	si.append("text").text("--------------").append("br");
+	si.append("text").text("Your weapon: " + weapon.name).append("br");
+	si.append("text").text("Your armor: " + armor.name).append("br");
+	si.append("text").text("--------------").append("br");
+	var statTable = si.append("table").style("text-align", "center");
+	var headerRow = statTable.append("tr");
+	headerRow.append("th");
+	headerRow.append("th");
+	headerRow.append("th").text("Class:");
+	headerRow.append("th");
+	headerRow.append("th").text("Equipment:");
+	headerRow.append("th");
+	headerRow.append("th").text("Total:");
+	var powerRow = statTable.append("tr");
+	plusButton = powerRow.append("td").append("button").classed("building", true)
+		.classed("clickable", true).on("click", function(){statUpgrade(thisDiv, "might");});
+	if(statUpgradeCost > human.xp) plusButton.attr("disabled", true);
+	plusButton.append("div").classed("icon", true)
+		.style("background", "url(icons/plus.png) no-repeat")
+		.style("background-size", "29px 29px");
+	plusButton.append("div").classed("cost", true).text(format(statUpgradeCost));
+	descDiv = plusButton.append("div").classed("description", true);
+	descDiv.append("p").classed("descTitle", true).text("Level Up Might")
+		.append("p").classed("descText", true).text("Increase your Power by 10%");
+	powerRow.append("td").style("text-align", "right").text("POWER:");
+	powerRow.append("td").text(format(Math.round(human.mgt)));
+	powerRow.append("td").text("X");
+	powerRow.append("td").text(format(Math.round(weapon.pow)));
+	powerRow.append("td").text("=");
+	powerRow.append("td").text(format(Math.round(getPow(human))));
+	var accuracyRow = statTable.append("tr");
+	plusButton = accuracyRow.append("td").append("button").classed("building", true)
+		.classed("clickable", true).on("click", function(){statUpgrade(thisDiv, "focus");});
+	if(statUpgradeCost > human.xp) plusButton.attr("disabled", true);
+	plusButton.append("div").classed("icon", true)
+		.style("background", "url(icons/plus.png) no-repeat")
+		.style("background-size", "29px 29px");
+	plusButton.append("div").classed("cost", true).text(format(statUpgradeCost));
+	descDiv = plusButton.append("div").classed("description", true);
+	descDiv.append("p").classed("descTitle", true).text("Level Up Focus")
+		.append("p").classed("descText", true).text("Increase your Accuracy by 10%");
+	accuracyRow.append("td").style("text-align", "right").append("text").text("ACCURACY:");
+	accuracyRow.append("td").text(format(Math.round(human.foc)));
+	accuracyRow.append("td").text("X");
+	accuracyRow.append("td").text(format(Math.round(weapon.acc)));
+	accuracyRow.append("td").text("=");
+	accuracyRow.append("td").text(format(Math.round(getAcc(human))));
+	var speedRow = statTable.append("tr");
+	plusButton = speedRow.append("td").append("button").classed("building", true)
+		.classed("clickable", true).on("click", function(){statUpgrade(thisDiv, "spirit");});
+	if(statUpgradeCost > human.xp) plusButton.attr("disabled", true);
+	plusButton.append("div").classed("icon", true)
+		.style("background", "url(icons/plus.png) no-repeat")
+		.style("background-size", "29px 29px");
+	plusButton.append("div").classed("cost", true).text(format(statUpgradeCost));
+	descDiv = plusButton.append("div").classed("description", true);
+	descDiv.append("p").classed("descTitle", true).text("Level Up Spirit")
+		.append("p").classed("descText", true).text("Increase your Speed by 10%");
+	speedRow.append("td").style("text-align", "right").append("text").text("SPEED:");
+	speedRow.append("td").text(format(Math.round(human.spr)));
+	speedRow.append("td").text("X");
+	speedRow.append("td").text(format(Math.round(weapon.spd)));
+	speedRow.append("td").text("=");
+	speedRow.append("td").text(format(Math.round(getSpd(human))));
+	var defenseRow = statTable.append("tr");
+	plusButton = defenseRow.append("td").append("button").classed("building", true)
+		.classed("clickable", true).on("click", function(){statUpgrade(thisDiv, "vitality");});
+	if(statUpgradeCost > human.xp) plusButton.attr("disabled", true);
+	plusButton.append("div").classed("icon", true)
+		.style("background", "url(icons/plus.png) no-repeat")
+		.style("background-size", "29px 29px");
+	plusButton.append("div").classed("cost", true).text(format(statUpgradeCost));
+	descDiv = plusButton.append("div").classed("description", true);
+	descDiv.append("p").classed("descTitle", true).text("Level Up Vitality")
+		.append("p").classed("descText", true).text("Increase your Defense by 10%");
+	defenseRow.append("td").style("text-align", "right").append("text").text("DEFENSE:");
+	defenseRow.append("td").text(format(Math.round(human.vit)));
+	defenseRow.append("td").text("X");
+	defenseRow.append("td").text(format(Math.round(armor.def)));
+	defenseRow.append("td").text("=");
+	defenseRow.append("td").text(format(Math.round(getDef(human))));
+	var evasionRow = statTable.append("tr");
+	plusButton = evasionRow.append("td").append("button").classed("building", true)
+		.classed("clickable", true).on("click", function(){statUpgrade(thisDiv, "agility");});
+	if(statUpgradeCost > human.xp) plusButton.attr("disabled", true);
+	plusButton.append("div").classed("icon", true)
+		.style("background", "url(icons/plus.png) no-repeat")
+		.style("background-size", "29px 29px");
+	plusButton.append("div").classed("cost", true).text(format(statUpgradeCost));
+	descDiv = plusButton.append("div").classed("description", true);
+	descDiv.append("p").classed("descTitle", true).text("Level Up Agility")
+		.append("p").classed("descText", true).text("Increase your Evasion by 10%");
+	evasionRow.append("td").style("text-align", "right").append("text").text("EVASION:");
+	evasionRow.append("td").text(format(Math.round(human.agi)));
+	evasionRow.append("td").text("X");
+	evasionRow.append("td").text(format(Math.round(armor.eva)));
+	evasionRow.append("td").text("=");
+	evasionRow.append("td").text(format(Math.round(getEva(human))));
+	var rangeRow = statTable.append("tr");
+	plusButton = rangeRow.append("td").append("button").classed("building", true)
+		.classed("clickable", true).on("click", function(){statUpgrade(thisDiv, "intellect");});
+	if(statUpgradeCost > human.xp) plusButton.attr("disabled", true);
+	plusButton.append("div").classed("icon", true)
+		.style("background", "url(icons/plus.png) no-repeat")
+		.style("background-size", "29px 29px");
+	plusButton.append("div").classed("cost", true).text(format(statUpgradeCost));
+	descDiv = plusButton.append("div").classed("description", true);
+	descDiv.append("p").classed("descTitle", true).text("Level Up Intellect")
+		.append("p").classed("descText", true).text("Increase your Range by 10%");
+	rangeRow.append("td").style("text-align", "right").append("text").text("RANGE:");
+	rangeRow.append("td").text(format(Math.round(human.int)));
+	rangeRow.append("td").text("X");
+	rangeRow.append("td").text(format(Math.round(armor.rng)));
+	rangeRow.append("td").text("=");
+	rangeRow.append("td").text(format(Math.round(getRng(human))));
+	si.append("button").attr("id", "B").text("Buy gear!").on("click", function(){checkGearUpgrade(thisDiv);});
+	si.append("text").text("Cost: " + format(Math.round(10 * Math.pow(Math.sqrt(2), human.level/2.0))) + " gold")
+			.style("color", "#880").style("font-weight", "bold").append("br");
+	si.append("text").text("Available Upgrades:").append("br");
+	var upgradesPanel = si.append("div").style("width", "100%").style("float", "left");
+	si.append("text").text("Purchased Upgrades:").append("br");
+	var purchasedPanel = si.append("div").style("width", "100%").style("float", "left");
+	Object.keys(human.upgrades).forEach(function(key){
+		var obj = human.upgrades[key];
+		if(obj.status == "available"){
+			var upgradeDiv = upgradesPanel.append("button").classed("building", true)
+							.classed("clickable", true).attr("id", key).on("click", buyUpgrade);
+			if(obj.cost > human.xp) upgradeDiv.attr("disabled", true);
+			upgradeDiv.append("div").classed("icon", true)
+					.style("background", "url(icons/skills/" + obj.icon + ".png) no-repeat")
+					.style("background-size", "29px 29px");
+			upgradeDiv.append("div").classed("cost", true).text(format(obj.cost));
+			descDiv = upgradeDiv.append("div").classed("description", true);
+			descDiv.append("p").classed("descTitle", true).text(obj.name)
+					.append("p").classed("descText", true).text(obj.desc);
+		}else if(obj.status == "purchased"){
+			var purchasedDiv = purchasedPanel.append("button").classed("building", true)
+				.attr("id", "Purchased" + key)
+			purchasedDiv.append("div").classed("icon", true)
+					.style("background", "url(icons/skills/" + obj.icon + ".png) no-repeat")
+					.style("background-size", "29px 29px");
+			descDiv = purchasedDiv.append("div").classed("description", true);
+			descDiv.append("p").classed("descTitle", true).text(obj.name)
+					.append("p").classed("descText", true).text(obj.desc);
+		}
+	});
+}
+
+function toggleMonsterStats(){
+	var thisDiv = d3.select(this);
+	if(thisDiv.classed("selected")){
+		unDisplayStats(thisDiv);
+	}else{
+		displayMonsterStats(thisDiv);
+	}
+}
+
+function displayMonsterStats(thisDiv){
+	si.selectAll("*").remove();
+	d3.select("div.selected").classed("selected", false);
+	selectedDiv = null;
+	var index = thisDiv.attr("divNum");
+	thisDiv.classed("selected", true);
+	var monster = state.mob[index];
+	
+	si.append("text").text(monster.name + monster.className).append("br");
+	si.append("text").text(monster.hp + "% HP").append("br");
+	si.append("text").text("--------------").append("br");
+	var statTable = si.append("table").style("text-align", "center");
+	var powerRow = statTable.append("tr");
+	powerRow.append("td").style("text-align", "right").append("text").text("POWER:");
+	powerRow.append("td").append("text").text(format(Math.round(getPow(monster))));
+	var accuracyRow = statTable.append("tr");
+	accuracyRow.append("td").style("text-align", "right").append("text").text("ACCURACY:");
+	accuracyRow.append("td").append("text").text(format(Math.round(getAcc(monster))));
+	var speedRow = statTable.append("tr");
+	speedRow.append("td").style("text-align", "right").append("text").text("SPEED:");
+	speedRow.append("td").append("text").text(format(Math.round(getSpd(monster))));
+	var defenseRow = statTable.append("tr");
+	defenseRow.append("td").style("text-align", "right").append("text").text("DEFENSE:");
+	defenseRow.append("td").append("text").text(format(Math.round(getDef(monster))));
+	var evasionRow = statTable.append("tr");
+	evasionRow.append("td").style("text-align", "right").append("text").text("EVASION:");
+	evasionRow.append("td").append("text").text(format(Math.round(getEva(monster))));
+	var rangeRow = statTable.append("tr");
+	rangeRow.append("td").style("text-align", "right").append("text").text("RANGE:");
+	rangeRow.append("td").append("text").text(format(Math.round(getRng(monster))));
+}
+
+function unDisplayStats(thisDiv){
+	si.selectAll("*").remove();
+	if(thisDiv){
+		thisDiv.classed("selected", false);
+		selectedDiv = null;
+	}
+}
+
+function openTab(e, tab){
+	tabs = tb.selectAll(".tab");
+	tabs.each(function(){
+		d3.select(this).classed("selected", false);
+	});
+	d3.select("#" + tab + "Tab").classed("selected", "true");
+	
+	panels = rs.selectAll(".bigpanel");
+	panels.each(function(){
+		d3.select(this).style("display", "none");
+	});
+	d3.select("#" + tab + "Panel").style("display", "block");
+}
+
+function saveGame(){
+	stateString = JSON.stringify(state)
+	localStorage.setItem("WestmarchIdleSavedGame", stateString)
+	setTimeout(saveGame, 60000)
+}
+
+function ff(){
+	if(tickLength == 100) tickLength = 1;
+	else tickLength = 100;
+}
+
+setTimeout(saveGame, 60000);
+
+if(localStorage.getItem("WestmarchIdleSavedGame")){
+	loadGame();
+}else{
+	newGame();
+}
+
+</script>
+</body>
+</html>

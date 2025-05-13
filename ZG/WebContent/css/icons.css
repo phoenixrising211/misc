@@ -1,0 +1,123 @@
+.building {
+	margin:0px;
+	padding:0px;
+	border:3px solid;
+	border-color:#000;
+	border-radius:10px;
+	width:70px;
+	height:70px;
+	-webkit-user-select: none;
+	outline-style:none;
+	position:relative;
+	top:0;
+	left:0;
+	float:left;
+}
+.icon {
+	margin:0px;
+	padding:0px;
+	width:70px;
+	height:70px;
+	postion:absolute;
+	z-index:-1;
+	top:0;
+	left:0;
+	-webkit-filter: brightness(100%) contrast(100%);
+}
+.cost {
+	margin:0px;
+	padding:0px;
+	width:70px;
+	height:70px;
+	position:absolute;
+	top:0;
+	left:0;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	color:#0f0;
+	font-weight:bold;
+	font-size:16px;
+	-webkit-text-stroke: 1px black;
+}
+.building.clickable{
+	border-color:#ff0;
+}
+.building.clickable:hover{
+	border-color:#0f0;
+}
+.building.clickable:disabled{
+	border-color:#000;
+}
+.building.clickable .icon {
+	-webkit-filter: brightness(100%);
+}
+.building.clickable:hover .icon {
+	-webkit-filter: contrast(120%);
+}
+.building:disabled .icon {
+	-webkit-filter: brightness(50%);
+}
+.building:disabled:hover .icon {
+	-webkit-filter: brightness(100%) contrast(50%);
+}
+.building .description {
+	background-color:#000;
+	-webkit-text-stroke: 0px;
+	font-size: 12.6px;
+	margin:0px;
+	border:3px solid;
+	border-color:#ccc;
+	border-radius:5px;
+	width:400px;
+	height:156px;
+	position:fixed;
+	top:0px;
+	left:406px;
+	display: none;
+}
+.descText {
+	color: #fff;
+	font-weight:normal;
+	width:100%;
+}
+.descTitle {
+	color:#ff0;
+	font-weight:bold;
+	width:100%;
+}
+.building:hover .description {
+	display:flex;
+	justify-content:center;
+	align-items:center;
+}
+.hp {
+	height:50%;
+	width:300px;
+}
+.left {
+	float:left;
+}
+.right {
+	float:right;
+}
+.activated {
+	background-color:#afa;
+}
+.locked {
+	display:none;
+}
+button.cookie {
+  background: #aa0;
+  background-image: -webkit-linear-gradient(top, #aa0, #660);
+  background-image: -moz-linear-gradient(top, #aa0, #660);
+  background-image: -ms-linear-gradient(top, #aa0, #660);
+  background-image: -o-linear-gradient(top, #aa0, #660);
+  background-image: linear-gradient(to bottom, #aa0, #660);
+  -webkit-border-radius: 150;
+  -moz-border-radius: 150;
+  border-radius: 150px;
+  width: 300px;
+  height: 300px;
+  border: solid #aa0 2px;
+}
